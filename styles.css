@@ -1,4 +1,4 @@
-/* Production Mobile-First Stylesheet with Semantic Multi-Level Zoom */
+/* Production Mobile-First Stylesheet with Semantic Multi-Level Zoom & PIN Security Gate */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -15,6 +15,8 @@
   --sheet-border: #e2e8f0;
   --overlay: rgba(0, 0, 0, 0.45);
   --accent: #2563eb;
+  --keypad-bg: #ffffff;
+  --keypad-border: #e2e8f0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,6 +34,8 @@
     --sheet-border: #1e293b;
     --overlay: rgba(0, 0, 0, 0.75);
     --accent: #3b82f6;
+    --keypad-bg: #161820;
+    --keypad-border: #262934;
   }
 }
 
@@ -55,7 +59,115 @@ html, body {
   flex-direction: column;
 }
 
-/* Mobile App Header Bar */
+/* ==========================================================================
+   PIN Lock Screen (Freya App Security Pattern)
+   ========================================================================== */
+.pin-lock-container {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 24px 30px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.pin-lock-container.unlocked {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.04);
+}
+
+@keyframes pinShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+.pin-shake {
+  animation: pinShake 0.38s ease-in-out;
+}
+
+.pin-dots-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.pin-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 9999px;
+  border: 2px solid var(--line-color);
+  background-color: transparent;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pin-dot.filled {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.18);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
+}
+
+.pin-dot.error {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.45);
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 22px;
+  width: 100%;
+  max-width: 290px;
+}
+
+.keypad-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 9999px;
+  background-color: var(--keypad-bg);
+  border: 1px solid var(--keypad-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  transition: all 0.1s ease;
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+.keypad-btn:hover {
+  background-color: var(--line-color);
+}
+
+.keypad-btn:active {
+  background-color: var(--accent);
+  color: #ffffff;
+  transform: scale(0.92);
+}
+
+.keypad-btn .subtext {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+
+/* ==========================================================================
+   Main Application Header Bar
+   ========================================================================== */
 .mobile-header {
   position: absolute;
   top: 0;
@@ -112,7 +224,23 @@ html, body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* Timeline Viewport (Touch Scrolling & Pinching) */
+.lock-app-btn {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+.lock-app-btn:hover {
+  color: var(--text-main);
+}
+
+/* Timeline Viewport */
 .timeline-viewport {
   flex: 1;
   width: 100%;
@@ -144,7 +272,7 @@ html, body {
   transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The Continuous Axis Line */
+/* Axis Line */
 .timeline-axis {
   position: absolute;
   top: 50%;
@@ -185,7 +313,7 @@ html, body {
   pointer-events: none;
 }
 
-/* The Big Interactive Dots */
+/* Big Interactive Dots */
 .timeline-dot {
   position: absolute;
   top: 50%;
@@ -242,13 +370,11 @@ html, body {
   transition: all 0.25s ease;
 }
 
-/* Stagger Above */
 .dot-label-container.position-top {
   bottom: 50%;
   margin-bottom: 24px;
 }
 
-/* Stagger Below */
 .dot-label-container.position-bottom {
   top: 50%;
   margin-top: 24px;
@@ -332,7 +458,7 @@ html, body {
   color: var(--bg);
 }
 
-/* Detail Modal Sheet (Zero Bloat, Crisp & Pure) */
+/* Detail Modal Sheet */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -483,198 +609,4 @@ html, body {
 
 .close-sheet-btn:hover {
   opacity: 0.9;
-}
-
-/* ==========================================================================
-   PIN LOCK SCREEN OVERLAY & KEYPAD
-   ========================================================================== */
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.lock-btn {
-  background: var(--sheet-bg);
-  border: 1px solid var(--sheet-border);
-  color: var(--text-muted);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.lock-btn:hover {
-  color: var(--text-main);
-  border-color: var(--text-muted);
-  transform: scale(1.05);
-}
-
-.lock-btn:active {
-  transform: scale(0.95);
-}
-
-.pin-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background-color: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
-}
-
-.pin-overlay.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.pin-container {
-  width: 100%;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.pin-lock-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  border: 1px solid rgba(37, 99, 235, 0.2);
-}
-
-.pin-title {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-main);
-  margin-bottom: 6px;
-}
-
-.pin-subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 24px;
-}
-
-.pin-dots-row {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  margin-bottom: 8px;
-}
-
-.pin-dots-row.shake {
-  animation: pinShake 0.38s ease-in-out;
-}
-
-@keyframes pinShake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-10px); }
-  40%, 80% { transform: translateX(10px); }
-}
-
-.pin-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--text-dim);
-  background: transparent;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.pin-dot.filled {
-  background-color: var(--accent);
-  border-color: var(--accent);
-  transform: scale(1.15);
-  box-shadow: 0 0 10px rgba(37, 99, 235, 0.45);
-}
-
-.pin-dot.error {
-  background-color: #ef4444;
-  border-color: #ef4444;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
-}
-
-.pin-error-text {
-  min-height: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #ef4444;
-  margin-bottom: 12px;
-}
-
-.pin-trust-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  margin-bottom: 24px;
-}
-
-.pin-trust-label input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-}
-
-.pin-keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  width: 100%;
-  max-width: 260px;
-}
-
-.keypad-btn {
-  height: 58px;
-  border-radius: 50%;
-  background: var(--sheet-bg);
-  border: 1px solid var(--sheet-border);
-  color: var(--text-main);
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.12s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.keypad-btn:active {
-  transform: scale(0.92);
-  background: rgba(37, 99, 235, 0.12);
-  border-color: var(--accent);
-}
-
-.keypad-btn.keypad-fn {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-muted);
 }

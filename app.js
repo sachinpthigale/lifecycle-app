@@ -1,23 +1,29 @@
-// LifeLine — Semantic Multi-Level Zoom Timeline Controller
+// LifeLine — Production Controller with Master PIN Security & Semantic Zoom
 (function () {
   'use strict';
 
-  // ===========================================================================
-  // SECURITY & MASTER PIN GATE (Default PIN: 2019)
-  // ===========================================================================
+  // Master PIN Hash (SHA-256 of '2019', identical to Freya App)
+  const MASTER_PIN_HASH = '023e33504ab909cf87a6f4e4e545090e40bdc0a2153e5b68b19f7fad2b737904';
+  const PIN_SESSION_KEY = 'lifeline_master_unlocked_v1';
 
-  const DEFAULT_PIN_HASH = '023e33504ab909cf87a6f4e4e545090e40bdc0a2153e5b68b19f7fad2b737904';
-
+  // Pure JavaScript SHA-256 Hash Implementation
   function sha256(ascii) {
     function rightRotate(value, amount) {
       return (value >>> amount) | (value << (32 - amount));
     }
+
+    const mathPow = Math.pow;
+    const maxWord = mathPow(2, 32);
+    let result = '';
+
     const words = [];
     const asciiBitLength = ascii.length * 8;
-    const hash = [
+
+    let hash = [
       0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
       0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
     ];
+
     const k = [
       0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
       0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -72,65 +78,149 @@
       rawBytes[idx * 4 + 2] = (hash[idx] >>> 8) & 0xff;
       rawBytes[idx * 4 + 3] = hash[idx] & 0xff;
     }
-    const hex = Array.from(rawBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-    return { hex, bytes: rawBytes };
+    return Array.from(rawBytes).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  class SecurityManager {
-    constructor() {
-      this.PIN_HASH_KEY = 'lifeline_pin_hash_v1';
-      this.UNLOCKED_KEY = 'lifeline_session_unlocked';
-      this.TRUSTED_KEY = 'lifeline_trusted_device';
-    }
+  // =========================================================================
+  // PIN Security Controller
+  // =========================================================================
+  const pinState = {
+    buffer: '',
+    error: false,
+    unlocked: sessionStorage.getItem(PIN_SESSION_KEY) === 'true'
+  };
 
-    getPinHash() {
-      if (typeof localStorage === 'undefined') return DEFAULT_PIN_HASH;
-      return localStorage.getItem(this.PIN_HASH_KEY) || DEFAULT_PIN_HASH;
-    }
+  const lockEl = {
+    screen: document.getElementById('pin-lock-screen'),
+    dotsContainer: document.getElementById('pin-dots-container'),
+    dots: [
+      document.getElementById('pdot-0'),
+      document.getElementById('pdot-1'),
+      document.getElementById('pdot-2'),
+      document.getElementById('pdot-3')
+    ],
+    errorText: document.getElementById('pin-error-text'),
+    keypad: document.getElementById('pin-keypad'),
+    lockBtn: document.getElementById('lock-app-btn')
+  };
 
-    isUnlocked() {
-      try {
-        const isTrusted = localStorage.getItem(this.TRUSTED_KEY) === 'true';
-        const isSessionUnlocked = sessionStorage.getItem(this.UNLOCKED_KEY) === 'true';
-        return isTrusted || isSessionUnlocked;
-      } catch (e) {
-        return false;
+  function updatePinDotsUI() {
+    for (let i = 0; i < 4; i++) {
+      if (lockEl.dots[i]) {
+        if (pinState.error) {
+          lockEl.dots[i].className = 'pin-dot error';
+        } else if (i < pinState.buffer.length) {
+          lockEl.dots[i].className = 'pin-dot filled';
+        } else {
+          lockEl.dots[i].className = 'pin-dot';
+        }
       }
-    }
-
-    verifyPin(enteredPin, trustDevice = true) {
-      const hash = sha256(enteredPin).hex;
-      if (hash === this.getPinHash()) {
-        try {
-          sessionStorage.setItem(this.UNLOCKED_KEY, 'true');
-          if (trustDevice) {
-            localStorage.setItem(this.TRUSTED_KEY, 'true');
-          } else {
-            localStorage.removeItem(this.TRUSTED_KEY);
-          }
-        } catch (e) {}
-        return true;
-      }
-      return false;
-    }
-
-    lock() {
-      try {
-        sessionStorage.removeItem(this.UNLOCKED_KEY);
-        localStorage.removeItem(this.TRUSTED_KEY);
-      } catch (e) {}
     }
   }
 
-  const security = new SecurityManager();
-  let pinBuffer = '';
-  let pinErrorTimeout = null;
+  function handlePinInput(key) {
+    if (pinState.error) return;
 
+    if (key === 'clear') {
+      pinState.buffer = '';
+      updatePinDotsUI();
+      return;
+    }
+
+    if (key === 'back') {
+      pinState.buffer = pinState.buffer.slice(0, -1);
+      updatePinDotsUI();
+      return;
+    }
+
+    if (/^[0-9]$/.test(key) && pinState.buffer.length < 4) {
+      pinState.buffer += key;
+      updatePinDotsUI();
+
+      if (pinState.buffer.length === 4) {
+        verifyMasterPin();
+      }
+    }
+  }
+
+  function verifyMasterPin() {
+    const enteredHash = sha256(pinState.buffer);
+
+    if (enteredHash === MASTER_PIN_HASH) {
+      // Success! Unlock app
+      pinState.unlocked = true;
+      sessionStorage.setItem(PIN_SESSION_KEY, 'true');
+      if (lockEl.screen) lockEl.screen.classList.add('unlocked');
+      if (lockEl.errorText) lockEl.errorText.textContent = '';
+      pinState.buffer = '';
+      updatePinDotsUI();
+    } else {
+      // Failed PIN: shake animation and clear
+      pinState.error = true;
+      updatePinDotsUI();
+      if (lockEl.dotsContainer) lockEl.dotsContainer.classList.add('pin-shake');
+      if (lockEl.errorText) lockEl.errorText.textContent = 'Incorrect PIN. Please try again.';
+
+      setTimeout(() => {
+        pinState.buffer = '';
+        pinState.error = false;
+        if (lockEl.dotsContainer) lockEl.dotsContainer.classList.remove('pin-shake');
+        updatePinDotsUI();
+      }, 500);
+    }
+  }
+
+  function lockApp() {
+    pinState.unlocked = false;
+    sessionStorage.removeItem(PIN_SESSION_KEY);
+    pinState.buffer = '';
+    updatePinDotsUI();
+    if (lockEl.errorText) lockEl.errorText.textContent = '';
+    if (lockEl.screen) lockEl.screen.classList.remove('unlocked');
+  }
+
+  function setupPinSecurity() {
+    // If already unlocked in this session, hide screen immediately
+    if (pinState.unlocked && lockEl.screen) {
+      lockEl.screen.classList.add('unlocked');
+    }
+
+    // Keypad button clicks
+    if (lockEl.keypad) {
+      lockEl.keypad.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const key = btn.dataset.key;
+        if (key) handlePinInput(key);
+      });
+    }
+
+    // Physical keyboard input
+    window.addEventListener('keydown', (e) => {
+      if (!pinState.unlocked) {
+        if (/^[0-9]$/.test(e.key)) {
+          handlePinInput(e.key);
+        } else if (e.key === 'Backspace') {
+          handlePinInput('back');
+        } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
+          handlePinInput('clear');
+        }
+      }
+    });
+
+    // Lock button in top bar
+    if (lockEl.lockBtn) {
+      lockEl.lockBtn.addEventListener('click', lockApp);
+    }
+  }
+
+  // =========================================================================
+  // Timeline Scrubber & Semantic Zoom Engine
+  // =========================================================================
   const MIN_AGE = 18;
   const MAX_AGE = 72;
   const PADDING = 140;
 
-  // Configuration for the 3 Semantic Zoom Levels
   const ZOOM_LEVELS = {
     1: {
       name: "Macro View",
@@ -158,10 +248,8 @@
     }
   };
 
-  // State
   let currentZoomLevel = 2; // Default to Decade view
 
-  // DOM Elements
   const el = {
     viewport: document.getElementById('timeline-viewport'),
     track: document.getElementById('timeline-track'),
@@ -175,105 +263,13 @@
     sheetWhatHappens: document.getElementById('sheet-what-happens'),
     sheetWhatPeersDo: document.getElementById('sheet-what-peers-do'),
     sheetActionsList: document.getElementById('sheet-actions-list'),
-    closeSheetBtn: document.getElementById('close-sheet-btn'),
-    // PIN Lock Elements
-    pinOverlay: document.getElementById('pin-overlay'),
-    pinDots: document.querySelectorAll('.pin-dot'),
-    pinDotsRow: document.getElementById('pin-dots-row'),
-    pinErrorText: document.getElementById('pin-error-text'),
-    trustCheckbox: document.getElementById('chk-trust-device'),
-    keypadBtns: document.querySelectorAll('.pin-keypad .keypad-btn'),
-    lockBtn: document.getElementById('btn-lock-app')
+    closeSheetBtn: document.getElementById('close-sheet-btn')
   };
-
-  // PIN Gate UI Controller
-  function updatePinUI(error = false) {
-    if (!el.pinDots) return;
-    el.pinDots.forEach((dot, idx) => {
-      dot.classList.remove('filled', 'error');
-      if (error) {
-        dot.classList.add('error');
-      } else if (idx < pinBuffer.length) {
-        dot.classList.add('filled');
-      }
-    });
-  }
-
-  function handlePinInput(key) {
-    if (pinErrorTimeout) {
-      clearTimeout(pinErrorTimeout);
-      pinErrorTimeout = null;
-      if (el.pinDotsRow) el.pinDotsRow.classList.remove('shake');
-      if (el.pinErrorText) el.pinErrorText.textContent = '';
-      updatePinUI();
-    }
-
-    if (key === 'clear') {
-      pinBuffer = '';
-      updatePinUI();
-      return;
-    }
-
-    if (key === 'back') {
-      pinBuffer = pinBuffer.slice(0, -1);
-      updatePinUI();
-      return;
-    }
-
-    if (/^[0-9]$/.test(key) && pinBuffer.length < 4) {
-      pinBuffer += key;
-      updatePinUI();
-
-      if (pinBuffer.length === 4) {
-        const trust = el.trustCheckbox ? el.trustCheckbox.checked : true;
-        const valid = security.verifyPin(pinBuffer, trust);
-
-        if (valid) {
-          setTimeout(() => {
-            pinBuffer = '';
-            updatePinUI();
-            if (el.pinOverlay) el.pinOverlay.classList.add('hidden');
-          }, 140);
-        } else {
-          setTimeout(() => {
-            updatePinUI(true);
-            if (el.pinDotsRow) el.pinDotsRow.classList.add('shake');
-            if (el.pinErrorText) el.pinErrorText.textContent = 'Incorrect PIN. Try again.';
-            pinErrorTimeout = setTimeout(() => {
-              pinBuffer = '';
-              if (el.pinDotsRow) el.pinDotsRow.classList.remove('shake');
-              if (el.pinErrorText) el.pinErrorText.textContent = '';
-              updatePinUI();
-            }, 700);
-          }, 100);
-        }
-      }
-    }
-  }
-
-  function lockApp() {
-    security.lock();
-    pinBuffer = '';
-    updatePinUI();
-    if (el.pinErrorText) el.pinErrorText.textContent = '';
-    if (el.pinDotsRow) el.pinDotsRow.classList.remove('shake');
-    if (el.pinOverlay) el.pinOverlay.classList.remove('hidden');
-  }
-
-  function checkSecurityGate() {
-    if (security.isUnlocked()) {
-      if (el.pinOverlay) el.pinOverlay.classList.add('hidden');
-    } else {
-      if (el.pinOverlay) el.pinOverlay.classList.remove('hidden');
-      updatePinUI();
-    }
-  }
 
   function getXForAge(age, pxPerYear) {
     return PADDING + (age - MIN_AGE) * pxPerYear;
   }
 
-  // Get Currently Centered Age in Viewport to Anchor Zooming
   function getCenterAge(pxPerYear) {
     if (!el.viewport) return 32;
     const centerPx = el.viewport.scrollLeft + (el.viewport.clientWidth / 2);
@@ -281,7 +277,6 @@
     return Math.max(MIN_AGE, Math.min(MAX_AGE, age));
   }
 
-  // Render Timeline based on Current Zoom Level
   function renderTimeline(anchorAge = 32) {
     if (!el.track || !el.viewport) return;
 
@@ -290,12 +285,11 @@
     const totalWidth = PADDING * 2 + (MAX_AGE - MIN_AGE) * pxPerYear;
     el.track.style.width = `${totalWidth}px`;
 
-    // Clear track elements except axis
     const axis = el.track.querySelector('.timeline-axis');
     el.track.innerHTML = '';
     if (axis) el.track.appendChild(axis);
 
-    // 1. Render Year Ticks & Numbers
+    // Ticks & Labels
     for (let age = MIN_AGE; age <= MAX_AGE; age++) {
       const x = getXForAge(age, pxPerYear);
       const isMajor = (age % config.tickStep === 0);
@@ -316,21 +310,18 @@
       }
     }
 
-    // 2. Filter Milestones by Zoom Level Tier (LOD)
+    // Visible Milestones for Current LOD
     const visibleEvents = LIFE_EVENTS.filter(evt => evt.tier <= config.maxTier);
 
-    // 3. Render Big Dots & Alternating Staggered Labels (Eliminating All Overlap!)
+    // Alternating Staggered Labels (Eliminates All Overlaps!)
     visibleEvents.forEach((evt, index) => {
       const x = getXForAge(evt.age, pxPerYear);
 
-      // The Big Tactile Dot
       const dot = document.createElement('div');
       dot.className = `timeline-dot ${evt.tier === 1 ? 'tier-1' : ''}`;
       dot.style.left = `${x}px`;
       dot.title = `Age ${evt.age} · ${evt.title}`;
 
-      // Alternating Stagger: Even index on bottom, Odd index on top
-      // This doubles available horizontal space between nearby years!
       const isTop = (index % 2 === 1);
       const labelContainer = document.createElement('div');
       labelContainer.className = `dot-label-container ${isTop ? 'position-top' : 'position-bottom'}`;
@@ -342,7 +333,6 @@
         <div class="label-stem"></div>
       `;
 
-      // Tap Dot -> Open Crisp Detail Sheet
       dot.addEventListener('click', (e) => {
         e.stopPropagation();
         openDetailSheet(evt);
@@ -352,7 +342,6 @@
       el.track.appendChild(dot);
     });
 
-    // 4. Update Zoom Indicator Text & Active Buttons
     if (el.zoomIndicatorText) {
       el.zoomIndicatorText.textContent = config.indicator;
     }
@@ -369,13 +358,12 @@
     if (el.zoomOutBtn) el.zoomOutBtn.style.opacity = currentZoomLevel === 1 ? '0.3' : '1';
     if (el.zoomInBtn) el.zoomInBtn.style.opacity = currentZoomLevel === 3 ? '0.3' : '1';
 
-    // 5. Restore Viewport Centering to Anchor Age
+    // Center to Anchor
     const targetX = getXForAge(anchorAge, pxPerYear);
     const scrollTarget = targetX - (el.viewport.clientWidth / 2);
     el.viewport.scrollLeft = scrollTarget;
   }
 
-  // Set Zoom Level with Smooth Center Anchoring
   function setZoom(newLevel) {
     if (newLevel < 1 || newLevel > 3 || newLevel === currentZoomLevel) return;
     const currentConfig = ZOOM_LEVELS[currentZoomLevel];
@@ -384,7 +372,6 @@
     renderTimeline(anchorAge);
   }
 
-  // Open Detail Modal Sheet
   function openDetailSheet(evt) {
     if (!el.modalOverlay) return;
 
@@ -411,12 +398,10 @@
     }
   }
 
-  // Setup Mouse Drag & Touch Gestures (Pinch-to-Zoom & Pan)
   function setupGestures() {
     const v = el.viewport;
     if (!v) return;
 
-    // 1. Mouse Drag
     let isDown = false;
     let startX;
     let scrollLeft;
@@ -438,7 +423,7 @@
       v.scrollLeft = scrollLeft - walk;
     });
 
-    // 2. Touch Pinch-to-Zoom
+    // Touch Pinch-to-Zoom
     let initialPinchDistance = null;
     v.addEventListener('touchstart', (e) => {
       if (e.touches.length === 2) {
@@ -471,7 +456,7 @@
       initialPinchDistance = null;
     });
 
-    // 3. Trackpad Pinch / Ctrl-Wheel Zoom
+    // Wheel zoom with Ctrl/Cmd
     v.addEventListener('wheel', (e) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
@@ -484,9 +469,7 @@
     }, { passive: false });
   }
 
-  // Event Listeners for Zoom Buttons & Modal
   function setupEvents() {
-    // Top zoom level pills
     el.zoomBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const level = parseInt(btn.dataset.level, 10);
@@ -494,7 +477,6 @@
       });
     });
 
-    // Bottom +/- buttons
     if (el.zoomOutBtn) {
       el.zoomOutBtn.addEventListener('click', () => setZoom(currentZoomLevel - 1));
     }
@@ -502,7 +484,6 @@
       el.zoomInBtn.addEventListener('click', () => setZoom(currentZoomLevel + 1));
     }
 
-    // Modal Sheet close events
     if (el.closeSheetBtn) {
       el.closeSheetBtn.addEventListener('click', closeDetailSheet);
     }
@@ -515,52 +496,12 @@
       });
     }
 
-    // Keypad button clicks for PIN unlock
-    if (el.keypadBtns) {
-      el.keypadBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const key = btn.dataset.key;
-          handlePinInput(key);
-        });
-      });
-    }
-
-    // Lock App Button
-    if (el.lockBtn) {
-      el.lockBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        lockApp();
-      });
-    }
-
-    // Checkbox state sync
-    if (el.trustCheckbox) {
-      el.trustCheckbox.addEventListener('change', (e) => {
-        if (!e.target.checked) {
-          try { localStorage.removeItem(security.TRUSTED_KEY); } catch (err) {}
-        }
-      });
-    }
-
     window.addEventListener('keydown', (e) => {
-      // If PIN lock overlay is active, route keypresses to PIN input
-      if (el.pinOverlay && !el.pinOverlay.classList.contains('hidden')) {
-        if (/^[0-9]$/.test(e.key)) {
-          handlePinInput(e.key);
-          return;
-        } else if (e.key === 'Backspace') {
-          handlePinInput('back');
-          return;
-        } else if (e.key === 'Escape') {
-          handlePinInput('clear');
-          return;
-        }
+      if (pinState.unlocked) {
+        if (e.key === 'Escape') closeDetailSheet();
+        if (e.key === '+' || e.key === '=') setZoom(currentZoomLevel + 1);
+        if (e.key === '-' || e.key === '_') setZoom(currentZoomLevel - 1);
       }
-
-      if (e.key === 'Escape') closeDetailSheet();
-      if (e.key === '+' || e.key === '=') setZoom(currentZoomLevel + 1);
-      if (e.key === '-' || e.key === '_') setZoom(currentZoomLevel - 1);
     });
 
     window.addEventListener('resize', () => {
@@ -571,10 +512,10 @@
   }
 
   function init() {
+    setupPinSecurity();
     setupGestures();
     setupEvents();
-    renderTimeline(32); // Center at Age 32 initially
-    checkSecurityGate();
+    renderTimeline(32);
   }
 
   if (document.readyState === 'loading') {

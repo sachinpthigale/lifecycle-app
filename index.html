@@ -8,10 +8,65 @@
 </head>
 <body>
 
-  <!-- Top Navigation Bar with Quick Zoom Level Pills -->
+  <!-- =====================================================================
+       PIN Lock Gate (Secured with Master PIN: 2019, same as Freya App)
+       ===================================================================== -->
+  <div class="pin-lock-container" id="pin-lock-screen">
+    <div style="text-align: center; margin-top: 18px;">
+      <div style="width: 52px; height: 52px; border-radius: 18px; background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--accent);">
+        <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+      </div>
+      <h2 style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px;">LifeLine is Locked</h2>
+      <p style="font-size: 12px; color: var(--text-muted); max-width: 250px; margin: 0 auto; line-height: 1.4;">
+        Enter the 4-digit Master PIN to view the lifecycle.
+      </p>
+
+      <!-- 4 PIN Indicator Dots -->
+      <div class="pin-dots-row" id="pin-dots-container">
+        <div class="pin-dot" id="pdot-0"></div>
+        <div class="pin-dot" id="pdot-1"></div>
+        <div class="pin-dot" id="pdot-2"></div>
+        <div class="pin-dot" id="pdot-3"></div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="pin-error-text" style="font-size: 11px; font-weight: 600; color: #ef4444; min-height: 16px;"></div>
+    </div>
+
+    <!-- Numeric Keypad (Freya Style) -->
+    <div class="keypad-grid" id="pin-keypad">
+      <button data-key="1" class="keypad-btn">1<span class="subtext">&nbsp;</span></button>
+      <button data-key="2" class="keypad-btn">2<span class="subtext">ABC</span></button>
+      <button data-key="3" class="keypad-btn">3<span class="subtext">DEF</span></button>
+      <button data-key="4" class="keypad-btn">4<span class="subtext">GHI</span></button>
+      <button data-key="5" class="keypad-btn">5<span class="subtext">JKL</span></button>
+      <button data-key="6" class="keypad-btn">6<span class="subtext">MNO</span></button>
+      <button data-key="7" class="keypad-btn">7<span class="subtext">PQRS</span></button>
+      <button data-key="8" class="keypad-btn">8<span class="subtext">TUV</span></button>
+      <button data-key="9" class="keypad-btn">9<span class="subtext">WXYZ</span></button>
+      <button data-key="clear" class="keypad-btn" style="font-size: 12px; color: var(--text-muted);">Clear</button>
+      <button data-key="0" class="keypad-btn">0<span class="subtext">+</span></button>
+      <button data-key="back" class="keypad-btn">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414-6.414a2 2 0 011.414-.586H19a2 2 0 012 2v10a2 2 0 01-2 2h-7.172a2 2 0 01-1.414-.586L3 12z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div style="font-size: 10px; color: var(--text-dim); text-align: center;">
+      Protected with SHA-256 Client-Side Verification
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       Main App: Unlocked View (Line with Dots)
+       ===================================================================== -->
   <header class="mobile-header">
-    <div class="header-left">
+    <div style="display: flex; align-items: center; gap: 8px;">
       <span class="brand-label">LifeLine</span>
+      <button class="lock-app-btn" id="lock-app-btn" title="Lock App">🔒</button>
     </div>
 
     <!-- Quick Level of Detail (LOD) Selector -->
@@ -20,13 +75,6 @@
       <button class="zoom-btn active" data-level="2">Decade</button>
       <button class="zoom-btn" data-level="3">Detailed</button>
     </div>
-
-    <button class="lock-btn" id="btn-lock-app" title="Lock LifeLine">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-      </svg>
-    </button>
   </header>
 
   <!-- Main Timeline Viewport (Touch Drag & Pinch-to-Zoom) -->
@@ -76,48 +124,6 @@
       </div>
 
       <button class="close-sheet-btn" id="close-sheet-btn">Close</button>
-    </div>
-  </div>
-
-  <!-- PIN Lock Screen Overlay -->
-  <div class="pin-overlay" id="pin-overlay">
-    <div class="pin-container">
-      <div class="pin-lock-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-      </div>
-      <h2 class="pin-title">LifeLine is Locked</h2>
-      <p class="pin-subtitle">Enter your 4-digit PIN to access</p>
-
-      <div class="pin-dots-row" id="pin-dots-row">
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-      </div>
-      <p class="pin-error-text" id="pin-error-text"></p>
-
-      <label class="pin-trust-label">
-        <input type="checkbox" id="chk-trust-device" checked>
-        <span>Remember this device</span>
-      </label>
-
-      <div class="pin-keypad">
-        <button class="keypad-btn" data-key="1">1</button>
-        <button class="keypad-btn" data-key="2">2</button>
-        <button class="keypad-btn" data-key="3">3</button>
-        <button class="keypad-btn" data-key="4">4</button>
-        <button class="keypad-btn" data-key="5">5</button>
-        <button class="keypad-btn" data-key="6">6</button>
-        <button class="keypad-btn" data-key="7">7</button>
-        <button class="keypad-btn" data-key="8">8</button>
-        <button class="keypad-btn" data-key="9">9</button>
-        <button class="keypad-btn keypad-fn" data-key="clear">CLR</button>
-        <button class="keypad-btn" data-key="0">0</button>
-        <button class="keypad-btn keypad-fn" data-key="back">⌫</button>
-      </div>
     </div>
   </div>
 
