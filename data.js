@@ -1,14 +1,16 @@
-// Hierarchical Lifecycle Events with Semantic Zoom Tiers (1 = Macro, 2 = Decade, 3 = Granular)
+// LifeLine Milestone Data with Dynamic Calendar Year Engine & Zoom Tiers
+let userBirthYear = parseInt(localStorage.getItem('lifeline_birth_year') || '1994', 10);
+
 const LIFE_EVENTS = [
   // --- TIER 1: MACRO EPOCHS (Always visible at all zoom levels) ---
   {
     id: "evt-18",
     age: 18,
-    tier: 1, // 1: Macro, 2: Medium, 3: Detailed
-    title: "Adulthood & Independence",
+    tier: 1, // 1: Macro, 2: Decade, 3: Detailed
+    title: "Adulthood & Legal Independence",
     category: "Independence",
     whatHappens: "You legally become an adult. Medical privacy (HIPAA) takes effect, and parents no longer have automatic legal or financial authority.",
-    whatPeersDo: "78% open an independent bank account and sign a basic health proxy so parents can assist in emergencies.",
+    whatPeersDo: "78% open an independent bank account and sign a basic healthcare proxy so parents can assist in emergencies.",
     actions: [
       "Open independent checking and high-yield savings accounts",
       "Sign a basic durable power of attorney and healthcare proxy",
@@ -19,7 +21,7 @@ const LIFE_EVENTS = [
     id: "evt-30",
     age: 30,
     tier: 1,
-    title: "Family Foundations & Major Wealth",
+    title: "Family Foundations & Wealth Compounding",
     category: "Family Launch",
     whatHappens: "The defining decade for career compounding, family formation, housing, and long-term asset building.",
     whatPeersDo: "82% solidify a long-term household savings rate of 15-20% and assess home purchase readiness.",
@@ -33,7 +35,7 @@ const LIFE_EVENTS = [
     id: "evt-45",
     age: 45,
     tier: 1,
-    title: "Mid-Career & Health Baselines",
+    title: "Peak Career & Preventative Health",
     category: "Peak & Health",
     whatHappens: "Peak career earning years paired with critical preventative health milestones.",
     whatPeersDo: "74% schedule comprehensive colorectal screenings and rebalance investments as college nears.",
@@ -93,7 +95,7 @@ const LIFE_EVENTS = [
     tier: 2,
     title: "529 College Plan & Term Life",
     category: "Family Protection",
-    whatHappens: "Securing financial safety nets for young dependents.",
+    whatHappens: "Securing financial safety nets for young dependents and automating education savings.",
     whatPeersDo: "84% open a 529 plan by age 1; 76% lock in 20-year level term life insurance.",
     actions: [
       "Open state direct 529 college savings plan ($150-$300/mo automated)",
@@ -300,3 +302,8 @@ const LIFE_EVENTS = [
     ]
   }
 ];
+
+// Helper to compute calendar year from age
+function getYearForAge(age) {
+  return userBirthYear + age;
+}

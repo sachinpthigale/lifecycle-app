@@ -1,42 +1,23 @@
-/* Production Mobile-First Stylesheet with Semantic Multi-Level Zoom, PIN Security & Safe Areas */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* LifeLine — Mobile App Native Design with Cool Animations & Fluid Zoom */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #ffffff;
-  --line-color: #cbd5e1;
-  --line-active: #0f172a;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
-  --dot-bg: #ffffff;
-  --dot-border: #0f172a;
-  --dot-hover: #000000;
-  --sheet-bg: #ffffff;
-  --sheet-border: #e2e8f0;
-  --overlay: rgba(0, 0, 0, 0.45);
-  --accent: #2563eb;
-  --keypad-bg: #ffffff;
-  --keypad-border: #e2e8f0;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #090a0f;
-    --line-color: #1e293b;
-    --line-active: #f8fafc;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-dim: #475569;
-    --dot-bg: #090a0f;
-    --dot-border: #f8fafc;
-    --dot-hover: #ffffff;
-    --sheet-bg: #12141c;
-    --sheet-border: #1e293b;
-    --overlay: rgba(0, 0, 0, 0.75);
-    --accent: #3b82f6;
-    --keypad-bg: #161820;
-    --keypad-border: #262934;
-  }
+  --bg-app: #08090d;
+  --bg-card: #11131a;
+  --bg-subtle: #191c26;
+  --line-color: #262c3d;
+  --line-glow: rgba(59, 130, 246, 0.4);
+  --text-primary: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --dot-bg: #0b0d14;
+  --dot-border: #3b82f6;
+  --dot-active: #60a5fa;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.5);
+  --sheet-bg: #11131a;
+  --sheet-border: #1e2433;
+  --overlay: rgba(0, 0, 0, 0.75);
 }
 
 * {
@@ -45,6 +26,7 @@
   padding: 0;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 html, body {
@@ -52,51 +34,217 @@ html, body {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background-color: var(--bg);
+  background-color: #030407;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--text-main);
+  color: var(--text-primary);
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   overscroll-behavior: none;
-  overscroll-behavior-y: none;
 }
 
 /* ==========================================================================
-   PIN Lock Screen (Phone App Pattern)
+   Mobile Phone Device Frame (Desktop Simulator & Native Mobile 100%)
    ========================================================================== */
-.pin-lock-container {
-  position: fixed;
+.phone-viewport-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.phone-device-shell {
+  width: 100%;
+  max-width: 440px;
+  height: 100%;
+  max-height: 940px;
+  background-color: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 25px 80px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 480px) {
+  .phone-device-shell {
+    border-radius: 50px;
+    border: 10px solid #1e2433;
+    box-shadow: 0 30px 100px -20px rgba(0, 0, 0, 0.95), 0 0 0 2px rgba(255, 255, 255, 0.12);
+  }
+}
+
+@media (max-width: 479px) {
+  .phone-device-shell {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+  }
+}
+
+/* Fullscreen mode toggle */
+.fullscreen-active .phone-device-shell {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+/* Native Status Bar & Dynamic Island */
+.phone-status-bar {
+  height: 44px;
+  padding: 10px 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+  pointer-events: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dynamic-island {
+  width: 100px;
+  height: 26px;
+  background-color: #000000;
+  border-radius: 20px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dynamic-island-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+.dynamic-island-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+}
+
+.dynamic-island-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #38bdf8;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+/* Native App Header Bar */
+.phone-nav-bar {
+  padding: 6px 18px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
+}
+
+.app-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-logo-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.5);
+}
+
+.app-title-text {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+/* Birth Year Settings Chip */
+.birth-year-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 600;
+  color: #60a5fa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.birth-year-chip:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* ==========================================================================
+   PIN Lock Screen (Phone Pattern with Tactile Feedback)
+   ========================================================================== */
+.pin-lock-overlay {
+  position: absolute;
   inset: 0;
-  background-color: var(--bg);
-  z-index: 200;
+  background: var(--bg-app);
+  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding-top: max(40px, env(safe-area-inset-top));
-  padding-bottom: max(30px, env(safe-area-inset-bottom));
-  padding-left: max(24px, env(safe-area-inset-left));
-  padding-right: max(24px, env(safe-area-inset-right));
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  padding: 50px 24px 34px;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pin-lock-container.unlocked {
+.pin-lock-overlay.unlocked {
   opacity: 0;
   pointer-events: none;
-  transform: scale(1.04);
+  transform: scale(1.06);
 }
 
 @keyframes pinShake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-10px); }
-  40%, 80% { transform: translateX(10px); }
+  20%, 60% { transform: translateX(-12px); }
+  40%, 80% { transform: translateX(12px); }
 }
 
 .pin-shake {
   animation: pinShake 0.38s ease-in-out;
 }
 
-.pin-dots-row {
+.pin-dots-display {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -107,147 +255,142 @@ html, body {
   width: 15px;
   height: 15px;
   border-radius: 9999px;
-  border: 2px solid var(--line-color);
-  background-color: transparent;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 2px solid #334155;
+  background: transparent;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .pin-dot.filled {
   background-color: var(--accent);
   border-color: var(--accent);
-  transform: scale(1.18);
-  box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
+  transform: scale(1.25);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.8);
 }
 
 .pin-dot.error {
   background-color: #ef4444;
   border-color: #ef4444;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.45);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.8);
 }
 
-.keypad-grid {
+.phone-keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px 22px;
+  gap: 14px 20px;
   width: 100%;
-  max-width: 290px;
+  max-width: 280px;
 }
 
-.keypad-btn {
-  width: 68px;
-  height: 68px;
-  border-radius: 9999px;
-  background-color: var(--keypad-bg);
-  border: 1px solid var(--keypad-border);
+.phone-keypad-btn {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background-color: #11141f;
+  border: 1px solid #1e2435;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
-  color: var(--text-main);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
-  transition: all 0.1s ease;
+  color: #f8fafc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   margin: 0 auto;
 }
 
-.keypad-btn:hover {
-  background-color: var(--line-color);
-}
-
-.keypad-btn:active {
+.phone-keypad-btn:active {
   background-color: var(--accent);
-  color: #ffffff;
-  transform: scale(0.92);
+  border-color: var(--accent);
+  transform: scale(0.9);
 }
 
-.keypad-btn .subtext {
-  font-size: 9px;
+.phone-keypad-btn .subtext {
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
+  color: #64748b;
   margin-top: -2px;
 }
 
 /* ==========================================================================
-   Main Application Header Bar (Safe Area Aware)
+   Continuous Zoom Controller (Fluid Multi-Level Zoom)
    ========================================================================== */
-.mobile-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: calc(56px + env(safe-area-inset-top));
-  padding-top: env(safe-area-inset-top);
-  padding-left: max(20px, env(safe-area-inset-left));
-  padding-right: max(20px, env(safe-area-inset-right));
+.zoom-ribbon {
+  padding: 4px 18px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 40;
-  background: linear-gradient(180deg, var(--bg) 65%, transparent 100%);
+  gap: 12px;
+  z-index: 30;
 }
 
-.brand-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* Floating Zoom Level Pill Controls */
-.zoom-controls {
+.zoom-slider-box {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: var(--sheet-bg);
-  padding: 3px 4px;
-  border-radius: 9999px;
+  gap: 8px;
+  background: var(--bg-card);
+  padding: 6px 12px;
+  border-radius: 24px;
   border: 1px solid var(--sheet-border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-.zoom-btn {
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: 600;
+.zoom-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1e293b, #3b82f6);
+  outline: none;
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.zoom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.zoom-mode-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.zoom-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--sheet-border);
   color: var(--text-muted);
-  padding: 5px 10px;
-  border-radius: 9999px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.zoom-btn:hover {
-  color: var(--text-main);
+.zoom-pill.active {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
-.zoom-btn.active {
-  background-color: var(--text-main);
-  color: var(--bg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-.lock-app-btn {
-  background: transparent;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 8px;
-  transition: color 0.15s ease;
-}
-
-.lock-app-btn:hover {
-  color: var(--text-main);
-}
-
-/* Timeline Viewport */
+/* ==========================================================================
+   Timeline Viewport & Spring Number Line
+   ========================================================================== */
 .timeline-viewport {
   flex: 1;
   width: 100%;
@@ -270,25 +413,25 @@ html, body {
   cursor: grabbing;
 }
 
-/* Continuous Number Line Track */
 .timeline-track {
   position: relative;
-  height: 240px;
+  height: 280px;
   display: flex;
   align-items: center;
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Axis Line */
+/* Axis Glowing Line */
 .timeline-axis {
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
   height: 2px;
-  background-color: var(--line-color);
+  background: linear-gradient(90deg, #1e293b, #3b82f6, #60a5fa, #3b82f6, #1e293b);
   transform: translateY(-50%);
   z-index: 1;
+  box-shadow: 0 0 12px var(--line-glow);
 }
 
 /* Year Ticks */
@@ -300,7 +443,7 @@ html, body {
   height: 8px;
   background-color: var(--line-color);
   z-index: 2;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .year-tick.major {
@@ -313,20 +456,20 @@ html, body {
   top: 50%;
   transform: translateX(-50%);
   margin-top: 14px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
+  font-family: 'JetBrains Mono', monospace;
   pointer-events: none;
 }
 
-/* Big Interactive Dots */
+/* Big Animated Interactive Dots */
 .timeline-dot {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--dot-bg);
   border: 2.5px solid var(--dot-border);
@@ -335,37 +478,64 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.25s;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.3);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, background-color 0.2s;
 }
 
 .timeline-dot::after {
   content: '';
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background-color: var(--dot-border);
-}
-
-.timeline-dot.tier-1 {
-  width: 32px;
-  height: 32px;
-  border-width: 3px;
-}
-.timeline-dot.tier-1::after {
-  width: 9px;
-  height: 9px;
+  transition: transform 0.2s ease;
 }
 
 .timeline-dot:hover {
-  transform: translate(-50%, -50%) scale(1.3);
-  box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.06);
+  transform: translate(-50%, -50%) scale(1.35);
+  box-shadow: 0 0 25px var(--accent-glow);
+  background-color: rgba(59, 130, 246, 0.2);
 }
 
 .timeline-dot:active {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.15);
 }
 
-/* Staggered Non-Overlapping Labels */
+.timeline-dot.tier-1 {
+  width: 36px;
+  height: 36px;
+  border-width: 3px;
+  border-color: #60a5fa;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
+}
+
+.timeline-dot.tier-1::after {
+  width: 10px;
+  height: 10px;
+  background-color: #60a5fa;
+}
+
+/* Touch Ripple Effect on Dot Tap */
+@keyframes dotRipple {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+}
+
+.dot-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.7) 0%, rgba(59, 130, 246, 0) 70%);
+  pointer-events: none;
+  animation: dotRipple 0.5s ease-out forwards;
+  z-index: 9;
+}
+
+/* Staggered Non-Overlapping Labels with Both Age & Year */
 .dot-label-container {
   position: absolute;
   transform: translateX(-50%);
@@ -379,106 +549,120 @@ html, body {
 
 .dot-label-container.position-top {
   bottom: 50%;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
 }
 
 .dot-label-container.position-bottom {
   top: 50%;
-  margin-top: 24px;
+  margin-top: 26px;
 }
 
 .label-stem {
   width: 1px;
-  height: 12px;
-  background-color: var(--line-color);
+  height: 14px;
+  background: linear-gradient(180deg, var(--line-color), transparent);
 }
+
 .position-top .label-stem {
-  order: 2;
+  order: 3;
   margin-top: 4px;
+  background: linear-gradient(180deg, transparent, var(--line-color));
 }
+
 .position-bottom .label-stem {
   order: 1;
   margin-bottom: 4px;
+  background: linear-gradient(180deg, var(--line-color), transparent);
+}
+
+.label-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(17, 19, 26, 0.92);
+  backdrop-filter: blur(8px);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.position-top .label-card { order: 1; }
+.position-bottom .label-card { order: 2; }
+
+/* Both Age & Calendar Year Dual Readout */
+.label-timing-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 1px;
+}
+
+.label-age {
+  font-size: 11px;
+  font-weight: 800;
+  color: #60a5fa;
+}
+
+.label-year {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .label-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-main);
-  background: var(--bg);
-  padding: 1px 6px;
-  border-radius: 6px;
+  color: #f8fafc;
 }
-.position-top .label-title { order: 1; }
-.position-bottom .label-title { order: 2; }
 
-.label-age {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.position-top .label-age { order: 1; margin-bottom: 2px; }
-.position-bottom .label-age { order: 2; margin-top: 2px; }
-
-/* Floating Bottom Zoom Action Bar (Safe Area Aware) */
-.bottom-bar {
-  position: absolute;
-  bottom: max(20px, env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+/* ==========================================================================
+   Bottom Action Bar & Home Indicator
+   ========================================================================== */
+.phone-bottom-bar {
+  padding: 6px 18px 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--sheet-bg);
-  padding: 6px 14px;
-  border-radius: 9999px;
-  border: 1px solid var(--sheet-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  justify-content: space-between;
   z-index: 40;
 }
 
-.zoom-indicator-text {
+.status-pill {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #94a3b8;
 }
 
-.zoom-btn-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid var(--sheet-border);
-  background: var(--bg);
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+.status-accent {
+  color: #38bdf8;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.zoom-btn-icon:hover {
-  background-color: var(--text-main);
-  color: var(--bg);
+.phone-home-indicator {
+  width: 130px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  margin: 6px auto 4px;
 }
 
-/* Detail Modal Sheet (Phone App Drawer) */
+/* ==========================================================================
+   Detail Modal Drawer (Native Mobile Spring Sheet with Drag-to-Dismiss)
+   ========================================================================== */
 .modal-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background-color: var(--overlay);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: flex-end;
   z-index: 100;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-overlay.open {
@@ -488,60 +672,63 @@ html, body {
 
 .modal-sheet {
   background-color: var(--sheet-bg);
-  border: 1px solid var(--sheet-border);
+  border-top: 1px solid var(--sheet-border);
   width: 100%;
-  max-width: 480px;
   border-radius: 32px 32px 0 0;
-  padding: 24px 22px max(34px, env(safe-area-inset-bottom));
-  box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.2);
+  padding: 20px 22px 28px;
+  box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.8);
   transform: translateY(100%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 85vh;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 82vh;
   overflow-y: auto;
-}
-
-@media (min-width: 540px) {
-  .modal-overlay {
-    align-items: center;
-    padding: 20px;
-  }
-  .modal-sheet {
-    border-radius: 30px;
-    transform: scale(0.92);
-  }
-  .modal-overlay.open .modal-sheet {
-    transform: scale(1);
-  }
 }
 
 .modal-overlay.open .modal-sheet {
   transform: translateY(0);
 }
 
-.drag-handle {
+.sheet-drag-handle {
   width: 36px;
-  height: 4px;
-  background-color: var(--line-color);
+  height: 5px;
+  background-color: #334155;
   border-radius: 999px;
   margin: 0 auto 16px;
+  cursor: grab;
+}
+
+/* Dual Header: Age & Calendar Year */
+.sheet-timing-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 
 .sheet-badge {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  margin-bottom: 4px;
+}
+
+.sheet-year-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sheet-header-title {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.25;
-  color: var(--text-main);
+  color: #ffffff;
   margin-bottom: 14px;
 }
 
@@ -554,25 +741,25 @@ html, body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text-dim);
   margin-bottom: 5px;
 }
 
 .sheet-desc {
   font-size: 13px;
   line-height: 1.55;
-  color: var(--text-main);
+  color: #cbd5e1;
 }
 
 .peer-insight-card {
   font-size: 13px;
   line-height: 1.5;
   font-weight: 500;
-  color: var(--text-main);
+  color: #f8fafc;
   padding: 12px 14px;
   border-radius: 14px;
-  background-color: rgba(148, 163, 184, 0.12);
-  border-left: 3px solid var(--accent);
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 3px solid #3b82f6;
 }
 
 .actions-list {
@@ -588,32 +775,68 @@ html, body {
   gap: 10px;
   font-size: 13px;
   line-height: 1.45;
-  color: var(--text-main);
+  color: #cbd5e1;
 }
 
 .action-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: var(--accent);
+  background-color: #3b82f6;
   margin-top: 7px;
   flex-shrink: 0;
+  box-shadow: 0 0 6px #3b82f6;
 }
 
 .close-sheet-btn {
   width: 100%;
   margin-top: 14px;
   padding: 13px;
-  background-color: var(--text-main);
-  color: var(--bg);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
   transition: opacity 0.15s;
 }
 
 .close-sheet-btn:hover {
   opacity: 0.9;
+}
+
+/* ==========================================================================
+   Birth Year Modal Settings
+   ========================================================================== */
+.settings-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.settings-modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-card {
+  width: 100%;
+  max-width: 320px;
+  background: #11141f;
+  border: 1px solid #1e2435;
+  border-radius: 24px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
 }
