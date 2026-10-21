@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>LifeLine — Mobile Lifecycle Phone App</title>
+  <title>LifeLine — Multi-Directional Lifecycle & Cultural Navigator</title>
   
-  <!-- Native Mobile App Capabilities -->
+  <!-- Mobile App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LifeLine">
@@ -39,24 +39,21 @@
           <div class="dynamic-island-dot"></div>
           <div class="dynamic-island-indicator">
             <span class="dynamic-island-pulse"></span>
-            <span>TIMELINE</span>
+            <span id="island-mode-label">LIFELINE</span>
           </div>
         </div>
 
         <!-- Phone Icons: Cellular, Wifi, Battery -->
         <div style="display: flex; align-items: center; gap: 5px;">
-          <!-- Cellular -->
           <svg style="width: 13px; height: 13px;" fill="currentColor" viewBox="0 0 24 24">
             <rect x="2" y="16" width="3" height="6" rx="1"/>
             <rect x="8" y="12" width="3" height="10" rx="1"/>
             <rect x="14" y="8" width="3" height="14" rx="1"/>
             <rect x="20" y="4" width="3" height="18" rx="1"/>
           </svg>
-          <!-- Wifi -->
           <svg style="width: 13px; height: 13px;" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 18c-.8 0-1.5-.7-1.5-1.5S11.2 15 12 15s1.5.7 1.5 1.5S12.8 18 12 18zm-4.2-4.2c2.3-2.3 6.1-2.3 8.4 0 .3.3.8.3 1.1 0 .3-.3.3-.8 0-1.1-2.9-2.9-7.7-2.9-10.6 0-.3.3-.3.8 0 1.1.3.3.8.3 1.1 0zm-2.8-2.8c3.9-3.9 10.1-3.9 14 0 .3.3.8.3 1.1 0 .3-.3.3-.8 0-1.1-4.5-4.5-11.7-4.5-16.2 0-.3.3-.3.8 0 1.1.3.3.8.3 1.1 0z"/>
           </svg>
-          <!-- Battery -->
           <svg style="width: 18px; height: 11px;" fill="currentColor" viewBox="0 0 24 14">
             <rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
             <rect x="3" y="3" width="14" height="8" rx="1.5"/>
@@ -66,7 +63,7 @@
       </div>
 
       <!-- =====================================================================
-           Native Phone App Navigation Bar
+           Top Navigation Bar: App Identity & Demographics Trigger
            ===================================================================== -->
       <nav class="phone-nav-bar">
         <div class="app-identity">
@@ -79,9 +76,9 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 6px;">
-          <!-- Birth Year Setting Chip (Shows Calendar Year Logic!) -->
-          <button class="birth-year-chip" id="birth-year-btn" title="Set Birth Year">
-            <span id="birth-year-label">Born 1994</span>
+          <!-- Multi-Cultural & Demographic Selector Button -->
+          <button class="demo-filter-btn" id="open-demographics-btn" title="Personalize Demographics & Culture">
+            <span id="demo-summary-label">🇮🇳 Indian · Bay Area</span>
             <span style="font-size: 8px; opacity: 0.6;">▼</span>
           </button>
 
@@ -98,48 +95,39 @@
       </nav>
 
       <!-- =====================================================================
-           Continuous Fluid Zoom Controller Bar
+           Interactive Line Direction Switcher & "Today" Default Jump
            ===================================================================== -->
-      <div class="zoom-ribbon">
-        <div class="zoom-slider-box">
-          <span style="font-size: 10px; font-weight: 700; color: #64748b;">ZOOM</span>
-          <input type="range" class="zoom-slider" id="continuous-zoom-slider" min="0.6" max="3.5" step="0.05" value="1.8">
-          <span id="zoom-multiplier-readout" style="font-size: 10px; font-weight: 700; color: #38bdf8; font-family: 'JetBrains Mono', monospace;">1.8x</span>
+      <div class="layout-selector-bar">
+        <!-- Direction Option Selector: Vertical, Wiggly S-Curve, Horizontal -->
+        <div class="layout-pill-group">
+          <button class="layout-pill-btn active" data-layout="vertical" id="btn-layout-vertical">
+            <span>↕</span> Vertical
+          </button>
+          <button class="layout-pill-btn" data-layout="wiggly" id="btn-layout-wiggly">
+            <span>~</span> S-Curve
+          </button>
+          <button class="layout-pill-btn" data-layout="horizontal" id="btn-layout-horizontal">
+            <span>↔</span> Horizontal
+          </button>
         </div>
 
-        <!-- Quick Zoom Level Chips -->
-        <div class="zoom-mode-chips">
-          <button class="zoom-pill" data-scale="0.8">Macro</button>
-          <button class="zoom-pill active" data-scale="1.8">Decade</button>
-          <button class="zoom-pill" data-scale="3.2">Detail</button>
-        </div>
+        <!-- Jump to "Today" Button (Default Landing) -->
+        <button class="today-jump-btn" id="jump-today-btn" title="Focus on Today">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399; animation: pulseDot 1.5s infinite;"></span>
+          <span>Today · Oct 2026</span>
+        </button>
       </div>
 
       <!-- =====================================================================
-           Timeline Viewport (Touch Drag & Pinch-to-Zoom)
+           Dynamic Timeline Viewport (Renders Vertical, Wiggly, or Horizontal)
            ===================================================================== -->
-      <main class="timeline-viewport" id="timeline-viewport">
-        <div class="timeline-track" id="timeline-track">
-          <!-- The Glowing Continuous Axis Line -->
-          <div class="timeline-axis"></div>
-
-          <!-- Dynamic ticks, labels, and big dots injected by app.js -->
-        </div>
+      <main id="timeline-container-mount" style="flex: 1; width: 100%; position: relative; overflow: hidden; display: flex;">
+        <!-- Injected dynamically by app.js based on selected line direction -->
       </main>
 
       <!-- =====================================================================
-           Bottom Phone Action Bar & Home Indicator
+           Bottom Phone Indicator Bar
            ===================================================================== -->
-      <div class="phone-bottom-bar">
-        <span class="status-pill">
-          Center: <span id="center-readout" class="status-accent">Age 32 · 2026</span>
-        </span>
-        <span style="font-size: 10px; color: #64748b;">
-          Double-tap to zoom in
-        </span>
-      </div>
-
-      <!-- Native iPhone Home Indicator Bar -->
       <div class="phone-home-indicator"></div>
 
       <!-- =====================================================================
@@ -157,7 +145,6 @@
             Enter the 4-digit Master PIN to view the lifecycle.
           </p>
 
-          <!-- 4 PIN Indicator Dots -->
           <div class="pin-dots-display" id="pin-dots-container">
             <div class="pin-dot" id="pdot-0"></div>
             <div class="pin-dot" id="pdot-1"></div>
@@ -165,11 +152,9 @@
             <div class="pin-dot" id="pdot-3"></div>
           </div>
 
-          <!-- Error Message Text -->
           <div id="pin-error-text" style="font-size: 11px; font-weight: 600; color: #ef4444; min-height: 16px;"></div>
         </div>
 
-        <!-- Phone Numeric Keypad -->
         <div class="phone-keypad" id="pin-keypad">
           <button data-key="1" class="phone-keypad-btn">1<span class="subtext">&nbsp;</span></button>
           <button data-key="2" class="phone-keypad-btn">2<span class="subtext">ABC</span></button>
@@ -195,62 +180,107 @@
       </div>
 
       <!-- =====================================================================
-           Detail Modal Sheet (Shows Both Age & Calendar Year)
+           Detail Modal Sheet (Shows Both Age & Calendar Year + Cultural Info)
            ===================================================================== -->
       <div class="modal-overlay" id="modal-overlay">
         <div class="modal-sheet" id="modal-sheet">
           <div class="sheet-drag-handle" id="sheet-drag-handle"></div>
           
-          <div class="sheet-timing-header">
-            <span class="sheet-badge" id="sheet-badge">Age 32 · Family Protection</span>
-            <span class="sheet-year-badge" id="sheet-year-badge">Year 2026</span>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">
+            <span id="sheet-badge" style="font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase;">Age 32 · Family Protection</span>
+            <span id="sheet-year-badge" style="font-size: 12px; font-weight: 700; color: #94a3b8; font-family: 'JetBrains Mono', monospace; background: rgba(255, 255, 255, 0.06); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">Year 2026</span>
           </div>
 
-          <h2 class="sheet-header-title" id="sheet-header-title">529 College Plan & Term Life</h2>
+          <h2 id="sheet-header-title" style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 14px; line-height: 1.25;">529 College Plan & Term Life</h2>
 
-          <div class="sheet-block">
-            <div class="sheet-label">What Happens at this Stage</div>
-            <p class="sheet-desc" id="sheet-what-happens">
+          <div style="margin-bottom: 16px;">
+            <div id="sheet-section-1-label" style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 5px;">What Happens at this Stage</div>
+            <p id="sheet-what-happens" style="font-size: 13px; line-height: 1.55; color: #cbd5e1;">
               Protecting your family's future and starting early college savings.
             </p>
           </div>
 
-          <div class="sheet-block">
-            <div class="sheet-label">What Peers Are Doing</div>
-            <div class="peer-insight-card" id="sheet-what-peers-do">
+          <div style="margin-bottom: 16px;">
+            <div id="sheet-section-2-label" style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 5px;">What Peers Are Doing / Where to Go</div>
+            <div id="sheet-what-peers-do" style="font-size: 13px; line-height: 1.5; font-weight: 500; color: #f8fafc; padding: 12px 14px; border-radius: 14px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6;">
               “84% open a 529 plan by age 1; 76% lock in 20-year level term life insurance.”
             </div>
           </div>
 
-          <div class="sheet-block">
-            <div class="sheet-label">Essential Next Steps</div>
-            <ul class="actions-list" id="sheet-actions-list">
+          <div style="margin-bottom: 16px;">
+            <div id="sheet-section-3-label" style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 5px;">Essential Action Items / Key Spots</div>
+            <ul id="sheet-actions-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
               <!-- Dynamically populated -->
             </ul>
           </div>
 
-          <button class="close-sheet-btn" id="close-sheet-btn">Done</button>
+          <button id="close-sheet-btn" style="width: 100%; margin-top: 14px; padding: 13px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; border: none; border-radius: 16px; font-size: 13px; font-weight: 700; cursor: pointer;">Done</button>
         </div>
       </div>
 
       <!-- =====================================================================
-           Birth Year Settings Modal
+           Demographics & Multi-Cultural Settings Drawer
            ===================================================================== -->
-      <div class="settings-modal-overlay" id="settings-modal-overlay">
-        <div class="settings-card">
-          <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 4px; color: #ffffff;">Set Your Birth Year</h3>
-          <p style="font-size: 12px; color: #94a3b8; margin-bottom: 16px;">
-            Every milestone will display your exact calendar year across your lifespan.
-          </p>
+      <div class="demographics-drawer-overlay" id="demographics-drawer-overlay">
+        <div class="demographics-drawer">
+          <div style="width: 36px; height: 5px; background: #334155; border-radius: 999px; margin: 0 auto 16px;"></div>
 
-          <div style="margin-bottom: 16px;">
-            <input type="number" id="birth-year-input" min="1940" max="2026" value="1994" style="width: 120px; font-size: 22px; font-weight: 800; text-align: center; background: #08090d; border: 2px solid #3b82f6; border-radius: 12px; color: #38bdf8; padding: 6px; font-family: 'JetBrains Mono', monospace; outline: none;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 16px; font-weight: 800; color: #ffffff;">Personalize Timeline & Culture</h3>
+              <p style="font-size: 11px; color: #94a3b8;">Tailored to your background, region & life stage</p>
+            </div>
+            <button id="close-demo-drawer-btn" style="background: #1e2435; border: none; color: #94a3b8; border-radius: 50%; width: 26px; height: 26px; cursor: pointer;">✕</button>
           </div>
 
-          <div style="display: flex; gap: 8px;">
-            <button id="cancel-birth-year-btn" style="flex: 1; padding: 10px; border-radius: 12px; background: #1e2435; color: #94a3b8; font-size: 12px; font-weight: 700; border: none; cursor: pointer;">Cancel</button>
-            <button id="save-birth-year-btn" style="flex: 1; padding: 10px; border-radius: 12px; background: #3b82f6; color: #ffffff; font-size: 12px; font-weight: 700; border: none; cursor: pointer;">Save</button>
+          <!-- 1. Heritage & Cultural Celebrations -->
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">
+            Heritage & Festivals
           </div>
+          <div class="filter-chip-row" id="heritage-chip-group">
+            <button class="filter-choice-chip active" data-heritage="indian">🇮🇳 Indian (Navratri, Durga Puja, Diwali)</button>
+            <button class="filter-choice-chip" data-heritage="american">🇺🇸 American (Los Gatos Halloween, Thanksgiving, Lights)</button>
+            <button class="filter-choice-chip" data-heritage="jewish">🕎 Jewish (Hanukkah, High Holidays)</button>
+            <button class="filter-choice-chip" data-heritage="east_asian">🏮 East Asian (Lunar New Year)</button>
+            <button class="filter-choice-chip" data-heritage="hispanic">🇲🇽 Hispanic (Día de los Muertos)</button>
+            <button class="filter-choice-chip" data-heritage="all">🌐 All Celebrations</button>
+          </div>
+
+          <!-- 2. Region / Geography (US Focused) -->
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">
+            Region (US)
+          </div>
+          <div class="filter-chip-row" id="region-chip-group">
+            <button class="filter-choice-chip active" data-region="bay_area">🌉 SF Bay Area (Los Gatos, Santa Clara, Fremont)</button>
+            <button class="filter-choice-chip" data-region="socal">🌴 Southern California (LA, Orange County)</button>
+            <button class="filter-choice-chip" data-region="nyc">🗽 New York / Tri-State</button>
+            <button class="filter-choice-chip" data-region="texas">🤠 Texas (Dallas, Austin, Houston)</button>
+            <button class="filter-choice-chip" data-region="seattle">🌲 Seattle / PNW</button>
+            <button class="filter-choice-chip" data-region="us_general">🇺🇸 US General</button>
+          </div>
+
+          <!-- 3. Gender Filter -->
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">
+            Gender & Focus
+          </div>
+          <div class="filter-chip-row" id="gender-chip-group">
+            <button class="filter-choice-chip active" data-gender="all">All</button>
+            <button class="filter-choice-chip" data-gender="female">Female</button>
+            <button class="filter-choice-chip" data-gender="male">Male</button>
+          </div>
+
+          <!-- Birth Year Setting -->
+          <div style="margin-top: 12px; padding: 12px; background: #161a26; border-radius: 14px; border: 1px solid #232a3d; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #ffffff;">Your Birth Year</div>
+              <div style="font-size: 11px; color: #94a3b8;">Controls dual Age & Calendar Year readouts</div>
+            </div>
+            <input type="number" id="drawer-birth-year-input" min="1940" max="2026" value="1994" style="width: 80px; font-size: 16px; font-weight: 800; text-align: center; background: #0b0d14; border: 1px solid #3b82f6; border-radius: 10px; color: #38bdf8; padding: 4px; font-family: 'JetBrains Mono', monospace;">
+          </div>
+
+          <button id="apply-demographics-btn" style="width: 100%; margin-top: 18px; padding: 13px; background: #3b82f6; color: #ffffff; font-size: 13px; font-weight: 700; border-radius: 16px; border: none; cursor: pointer;">
+            Apply & Update Timeline
+          </button>
         </div>
       </div>
 

@@ -1,116 +1,147 @@
-// LifeLine Milestone Data with Dynamic Calendar Year Engine & Zoom Tiers
+// Comprehensive Lifecycle, Multi-Cultural & Regional Events Database
 let userBirthYear = parseInt(localStorage.getItem('lifeline_birth_year') || '1994', 10);
 
-const LIFE_EVENTS = [
-  // --- TIER 1: MACRO EPOCHS (Always visible at all zoom levels) ---
-  {
-    id: "evt-18",
-    age: 18,
-    tier: 1, // 1: Macro, 2: Decade, 3: Detailed
-    title: "Adulthood & Legal Independence",
-    category: "Independence",
-    whatHappens: "You legally become an adult. Medical privacy (HIPAA) takes effect, and parents no longer have automatic legal or financial authority.",
-    whatPeersDo: "78% open an independent bank account and sign a basic healthcare proxy so parents can assist in emergencies.",
-    actions: [
-      "Open independent checking and high-yield savings accounts",
-      "Sign a basic durable power of attorney and healthcare proxy",
-      "Establish basic budgeting for rent, food, and tuition"
-    ]
-  },
-  {
-    id: "evt-30",
-    age: 30,
-    tier: 1,
-    title: "Family Foundations & Wealth Compounding",
-    category: "Family Launch",
-    whatHappens: "The defining decade for career compounding, family formation, housing, and long-term asset building.",
-    whatPeersDo: "82% solidify a long-term household savings rate of 15-20% and assess home purchase readiness.",
-    actions: [
-      "Target 1x annual salary saved in retirement accounts by age 30",
-      "Assess school district stability and home purchase timeline",
-      "Set up automatic monthly investments in low-cost index funds"
-    ]
-  },
-  {
-    id: "evt-45",
-    age: 45,
-    tier: 1,
-    title: "Peak Career & Preventative Health",
-    category: "Peak & Health",
-    whatHappens: "Peak career earning years paired with critical preventative health milestones.",
-    whatPeersDo: "74% schedule comprehensive colorectal screenings and rebalance investments as college nears.",
-    actions: [
-      "Schedule screening colonoscopy or non-invasive stool DNA test (official age 45)",
-      "Audit 401(k) compounding and child college savings progress",
-      "Review umbrella liability policy ($1M-$2M) as teen drivers emerge"
-    ]
-  },
-  {
-    id: "evt-65",
-    age: 65,
-    tier: 1,
-    title: "Retirement & Medicare Window",
-    category: "Retirement",
-    whatHappens: "The traditional retirement threshold and the pivotal 7-month Medicare enrollment window.",
-    whatPeersDo: "95% enroll in Medicare Part A & B on time to avoid lifelong late penalties.",
-    actions: [
-      "Enroll in Medicare during the 7-month Initial Enrollment window",
-      "Transition from accumulation to tax-efficient retirement distribution",
-      "Execute an updated living trust and advance healthcare directive"
-    ]
-  },
+// Default User Demographics (Customizable by user in app)
+let userDemographics = JSON.parse(localStorage.getItem('lifeline_user_demographics') || JSON.stringify({
+  gender: "all",               // all, male, female
+  heritage: "indian",          // indian, american, hispanic, east_asian, jewish, all
+  religion: "all",             // all, hindu, christian, jewish, muslim, secular
+  region: "bay_area",          // bay_area, socal, nyc, texas, seattle, us_general
+  interests: ["festivals", "family", "health", "finance"]
+}));
 
-  // --- TIER 2: DECADE MILESTONES (Visible at Medium & Detailed Zoom) ---
+// Core Human Lifecycle Milestones (Across All Demographic Backgrounds)
+const CORE_LIFECYCLE_MILESTONES = [
   {
-    id: "evt-22",
-    age: 22,
-    tier: 2,
-    title: "First Job & 800+ Credit Score",
-    category: "Career & Credit",
-    whatHappens: "Entering full-time professional employment and establishing creditworthiness.",
-    whatPeersDo: "81% automate statement payments on a starter cash-back card to build an 800+ credit score.",
+    id: "core-18",
+    age: 18,
+    type: "milestone",
+    tags: ["all", "independence", "legal"],
+    title: "Adulthood & Legal Autonomy",
+    category: "Independence",
+    whatHappens: "You legally become an adult. Medical privacy (HIPAA) takes effect, and parents no longer have automatic access to records.",
+    whatPeersDo: "78% open an independent bank account and sign a basic healthcare proxy so parents can help in medical emergencies.",
     actions: [
-      "Contribute enough to earn full employer 401(k) match",
-      "Set up autopay on a credit card to build length of credit history",
-      "Keep credit utilization under 10% of total limit"
+      "Open independent checking and high-yield savings",
+      "Sign durable power of attorney & advance healthcare directive",
+      "Understand credit building basics"
     ]
   },
   {
-    id: "evt-25",
+    id: "core-22",
+    age: 22,
+    type: "milestone",
+    tags: ["all", "career", "finance"],
+    title: "First Job & 800+ Credit Score",
+    category: "Career & Money",
+    whatHappens: "Entering the workforce full-time, building financial habits, and establishing creditworthiness.",
+    whatPeersDo: "81% set up automatic statement payments on a starter cash-back card to build an 800+ score early.",
+    actions: [
+      "Set up full autopay on cash-back card to build credit history",
+      "Contribute enough to capture full employer 401(k) match",
+      "Build a starter $1,000 cash emergency buffer"
+    ]
+  },
+  {
+    id: "core-25",
     age: 25,
-    tier: 2,
+    type: "milestone",
+    tags: ["all", "finance", "health"],
     title: "3–6 Month Emergency Reserve",
     category: "Financial Buffer",
-    whatHappens: "Aging off parental health coverage (age 26) and building real self-reliance.",
-    whatPeersDo: "74% keep 3 to 6 months of living expenses in an FDIC-insured High-Yield Savings Account.",
+    whatHappens: "Aging off parental health insurance (turning 26) and building genuine self-reliance.",
+    whatPeersDo: "74% keep 3 to 6 months of living expenses liquid in a High-Yield Savings Account (HYSA).",
     actions: [
-      "Select independent health insurance plan before 26th birthday",
-      "Build a 3-6 month liquid emergency fund in a 4%+ APY HYSA",
-      "Open and maximize an annual Roth IRA"
+      "Select independent health insurance plan before turning 26",
+      "Automate monthly savings into 4%+ APY HYSA",
+      "Open and fund a Roth IRA"
     ]
   },
   {
-    id: "evt-32",
+    id: "core-28",
+    age: 28,
+    type: "milestone",
+    tags: ["all", "family", "relationships"],
+    title: "Partnership & Long-Term Alignments",
+    category: "Partnership",
+    whatHappens: "Serious relationships, marriage, combining finances, or first home purchase plans.",
+    whatPeersDo: "64% do quarterly money syncs with partner to align on savings, debt, and home buying.",
+    actions: [
+      "Review mutual credit reports, debt payoff, and savings goals",
+      "Decide on joint vs. separate accounts for household bills",
+      "Check first-time homebuyer assistance and mortgage pre-approval"
+    ]
+  },
+  {
+    id: "core-31",
+    age: 31,
+    type: "milestone",
+    tags: ["family", "kids", "parenting"],
+    title: "Daycare & Infant Care Waitlists",
+    category: "Early Parenting",
+    whatHappens: "Licensed infant daycares have 9–18 month waitlists in most metro areas.",
+    whatPeersDo: "92% tour daycares and join 2–3 waitlists 6 to 9 months before needing care.",
+    actions: [
+      "Tour licensed local daycares and submit waitlist applications early",
+      "Enroll in employer Dependent Care FSA ($5,000 pre-tax savings)",
+      "Set up pediatric care and schedule 2, 4, 6-month well-child visits"
+    ]
+  },
+  {
+    id: "core-32",
     age: 32,
-    tier: 2,
+    type: "milestone",
+    tags: ["all", "family", "finance"],
     title: "529 College Plan & Term Life",
     category: "Family Protection",
-    whatHappens: "Securing financial safety nets for young dependents and automating education savings.",
-    whatPeersDo: "84% open a 529 plan by age 1; 76% lock in 20-year level term life insurance.",
+    isCurrentAge: true, // Marker for current year (Age 32 in 2026)
+    whatHappens: "Securing family safety nets and beginning compounding college funds for kids.",
+    whatPeersDo: "84% open a 529 plan by child's 1st year; 76% lock in 20-year level term life insurance.",
     actions: [
       "Open state direct 529 college savings plan ($150-$300/mo automated)",
-      "Secure 20-30 year level term life insurance (10x-12x household income)",
-      "Share 529 digital gifting link with grandparents"
+      "Secure 20-30 year level term life insurance (10x-12x annual income)",
+      "Share 529 digital gifting link with family"
     ]
   },
   {
-    id: "evt-40",
+    id: "core-33",
+    age: 33,
+    type: "milestone",
+    tags: ["all", "legal", "family"],
+    title: "Will & Child Legal Guardianship",
+    category: "Legal Protection",
+    whatHappens: "Without a valid legal will, a family court judge—not you—decides who raises your child.",
+    whatPeersDo: "61% execute a valid Last Will & Testament to legally nominate child guardians.",
+    actions: [
+      "Agree on primary and alternate legal guardians with your partner",
+      "Draft and notarize a state-specific Last Will & Testament",
+      "Audit primary and contingent beneficiaries on retirement and life policies"
+    ]
+  },
+  {
+    id: "core-35",
+    age: 35,
+    type: "milestone",
+    tags: ["family", "kids", "education"],
+    title: "Preschool & Elementary School Zoning",
+    category: "Education",
+    whatHappens: "Children enter preschool; neighborhood elementary school zoning becomes critical.",
+    whatPeersDo: "81% research public school district boundaries and kindergarten lottery deadlines.",
+    actions: [
+      "Check GreatSchools ratings and local elementary feeder boundaries",
+      "Enroll in swim lessons and early motor development activities",
+      "First pediatric dentist checkup and vision screening"
+    ]
+  },
+  {
+    id: "core-40",
     age: 40,
-    tier: 2,
-    title: "Cardiovascular & Metabolic Baseline",
+    type: "milestone",
+    tags: ["all", "health"],
+    title: "Cardiovascular & Health Baseline",
     category: "Health Baseline",
     whatHappens: "Midlife metabolic changes make early prevention essential for longevity.",
-    whatPeersDo: "78% complete comprehensive annual preventative bloodwork (ApoB, HbA1c, lipids).",
+    whatPeersDo: "78% complete comprehensive annual preventative bloodwork (ApoB, HbA1c, lipids, blood pressure).",
     actions: [
       "Book comprehensive annual physical (100% covered under ACA prevention)",
       "Check ApoB, lipid panel, and resting blood pressure",
@@ -118,9 +149,25 @@ const LIFE_EVENTS = [
     ]
   },
   {
-    id: "evt-50",
+    id: "core-45",
+    age: 45,
+    type: "milestone",
+    tags: ["all", "health"],
+    title: "Colorectal & Cancer Screening",
+    category: "Preventative Health",
+    whatHappens: "Official USPSTF screening age for colorectal cancer begins at age 45.",
+    whatPeersDo: "72% schedule a screening colonoscopy or non-invasive stool DNA test.",
+    actions: [
+      "Schedule colonoscopy or discuss Cologuard with physician",
+      "Annual mammogram or prostate health consultation based on history",
+      "Rebalance investment portfolio as children approach college age"
+    ]
+  },
+  {
+    id: "core-50",
     age: 50,
-    tier: 2,
+    type: "milestone",
+    tags: ["all", "finance"],
     title: "IRS 50+ Catch-Up Contributions",
     category: "Catch-Up Wealth",
     whatHappens: "IRS permits higher tax-sheltered contributions starting the calendar year you turn 50.",
@@ -132,9 +179,25 @@ const LIFE_EVENTS = [
     ]
   },
   {
-    id: "evt-62",
+    id: "core-55",
+    age: 55,
+    type: "milestone",
+    tags: ["all", "family", "legal"],
+    title: "Aging Parents & Eldercare Planning",
+    category: "Eldercare Planning",
+    whatHappens: "Caring for aging parents while planning your own retirement exit.",
+    whatPeersDo: "69% establish durable power of attorney and healthcare proxies for aging parents.",
+    actions: [
+      "Confirm aging parents have valid wills, deeds, and health proxies",
+      "Consolidate former employer 401(k) accounts into rollover IRAs",
+      "Utilize $1,000 HSA catch-up contribution starting at age 55"
+    ]
+  },
+  {
+    id: "core-62",
     age: 62,
-    tier: 2,
+    type: "milestone",
+    tags: ["all", "finance", "retirement"],
     title: "Social Security Timing Strategy",
     category: "Retirement Cashflow",
     whatHappens: "First age of Social Security eligibility, but with a permanent 30% reduction.",
@@ -146,9 +209,25 @@ const LIFE_EVENTS = [
     ]
   },
   {
-    id: "evt-70",
+    id: "core-65",
+    age: 65,
+    type: "milestone",
+    tags: ["all", "health", "retirement"],
+    title: "Medicare Part A & B Enrollment Window",
+    category: "Medicare Window",
+    whatHappens: "Turning 65 triggers the critical 7-month Medicare Initial Enrollment Period.",
+    whatPeersDo: "95% enroll on time to avoid permanent lifetime premium penalties.",
+    actions: [
+      "Sign up during the 7-month window (3 months before 65th birthday month)",
+      "Compare Medigap Plan G vs. Medicare Advantage (Part C)",
+      "Verify prescription drug coverage under Part D"
+    ]
+  },
+  {
+    id: "core-70",
     age: 70,
-    tier: 2,
+    type: "milestone",
+    tags: ["all", "legal", "legacy"],
     title: "Living Trust & Generational Legacy",
     category: "Legacy & Transfer",
     whatHappens: "Maximum Social Security benefits kick in; Required Minimum Distributions (RMDs) approach.",
@@ -158,152 +237,259 @@ const LIFE_EVENTS = [
       "Re-title primary residence and assets into Revocable Living Trust",
       "Document digital account credentials and legacy family instructions"
     ]
-  },
-
-  // --- TIER 3: GRANULAR MILESTONES (Visible at Detailed Zoom In) ---
-  {
-    id: "evt-19",
-    age: 19,
-    tier: 3,
-    title: "Student Loan & Credit Building",
-    category: "Credit Foundations",
-    whatHappens: "Managing student financial aid disbursements, housing leases, and credit utilization.",
-    whatPeersDo: "72% track their credit score monthly and avoid carrying high-interest card balances.",
-    actions: [
-      "Review subsidized vs unsubsidized student loan accrual",
-      "Establish autopay on small recurring subscriptions to build credit",
-      "Track free credit report updates on Experian or Credit Karma"
-    ]
-  },
-  {
-    id: "evt-28",
-    age: 28,
-    tier: 3,
-    title: "Partnership & Joint Budgeting",
-    category: "Couples Planning",
-    whatHappens: "Co-managing household expenses, aligning on debt, and setting wedding/home goals.",
-    whatPeersDo: "64% do quarterly money syncs with their partner to align on savings and big goals.",
-    actions: [
-      "Review mutual credit reports, debt balances, and long-term goals",
-      "Decide on joint vs separate accounts for household expenses",
-      "Evaluate first-time homebuyer assistance and local mortgage pre-approvals"
-    ]
-  },
-  {
-    id: "evt-31",
-    age: 31,
-    tier: 3,
-    title: "Daycare & Infant Care Waitlists",
-    category: "Early Childcare",
-    whatHappens: "Licensed infant daycares have 9–18 month waitlists in most metro areas.",
-    whatPeersDo: "92% tour daycares and join waitlists 6 to 9 months before needing coverage.",
-    actions: [
-      "Tour 2-3 licensed daycare centers or home daycares early",
-      "Enroll in employer Dependent Care FSA ($5,000 pre-tax savings)",
-      "Schedule pediatric visits at 2, 4, and 6 months"
-    ]
-  },
-  {
-    id: "evt-33",
-    age: 33,
-    tier: 3,
-    title: "Will & Child Guardianship",
-    category: "Legal Protection",
-    whatHappens: "Without a legal will, a family court judge decides who raises your child.",
-    whatPeersDo: "61% execute a valid Last Will & Testament to legally nominate child guardians.",
-    actions: [
-      "Agree on primary and alternate legal guardians with your partner",
-      "Draft and notarize a state-specific Last Will & Testament",
-      "Audit primary and contingent beneficiaries on 401(k) and life policies"
-    ]
-  },
-  {
-    id: "evt-35",
-    age: 35,
-    tier: 3,
-    title: "Preschool & Elementary School Zoning",
-    category: "School Zoning",
-    whatHappens: "Children transition to preschool and elementary school boundaries become critical.",
-    whatPeersDo: "81% research public school district boundaries and kindergarten lottery deadlines.",
-    actions: [
-      "Check GreatSchools ratings and local elementary feeder boundaries",
-      "Enroll in swim lessons and motor development activities",
-      "First pediatric dentist checkup and vision screening"
-    ]
-  },
-  {
-    id: "evt-38",
-    age: 38,
-    tier: 3,
-    title: "Extracurriculars & 529 Mid-Check",
-    category: "Family Enrichment",
-    whatHappens: "School-age kids enter sports, music, and academic enrichment programs.",
-    whatPeersDo: "76% balance extracurricular budgets with consistent 529 automated contributions.",
-    actions: [
-      "Audit children's 529 target-date asset allocation",
-      "Set an annual family budget for sports, arts, and camps",
-      "Review home equity and mortgage refinancing terms"
-    ]
-  },
-  {
-    id: "evt-48",
-    age: 48,
-    tier: 3,
-    title: "High School & College Tours",
-    category: "College Prep",
-    whatHappens: "Teenagers prepare for college admissions, testing, and driving.",
-    whatPeersDo: "83% add teen drivers to insurance with safety discounts and tour college campuses.",
-    actions: [
-      "Increase umbrella liability insurance to $1M-$2M for teen drivers",
-      "Estimate expected family contribution (FAFSA / CSS Profile)",
-      "Schedule junior year college campus visits"
-    ]
-  },
-  {
-    id: "evt-55",
-    age: 55,
-    tier: 3,
-    title: "Aging Parents & Healthcare Proxies",
-    category: "Eldercare Planning",
-    whatHappens: "Caring for aging parents while planning your own retirement exit.",
-    whatPeersDo: "69% establish durable power of attorney and healthcare proxies for aging parents.",
-    actions: [
-      "Confirm aging parents have valid wills, deeds, and health proxies",
-      "Consolidate former employer 401(k) accounts into rollover IRAs",
-      "Utilize $1,000 HSA catch-up contribution starting at age 55"
-    ]
-  },
-  {
-    id: "evt-58",
-    age: 58,
-    tier: 3,
-    title: "Empty Nest & Housing Downsizing",
-    category: "Empty Nest",
-    whatHappens: "Children leave home; evaluating whether to downsize or remodel for retirement.",
-    whatPeersDo: "66% calculate property tax differences and home equity unlock options.",
-    actions: [
-      "Evaluate downsizing or relocating to lower-tax jurisdictions",
-      "Eliminate remaining high-interest debt prior to retirement",
-      "Model retirement cash flow with a fee-only fiduciary planner"
-    ]
-  },
-  {
-    id: "evt-64",
-    age: 64,
-    tier: 3,
-    title: "Medicare Countdown (Age 64½)",
-    category: "Medicare Prep",
-    whatHappens: "The 7-month Initial Enrollment Period begins 3 months before your 65th birthday.",
-    whatPeersDo: "95% review Medigap Plan G vs Advantage formularies before 65th birthday.",
-    actions: [
-      "Mark initial enrollment start: 3 months before 65th birthday month",
-      "Compare Medicare Supplement Plan G vs Medicare Advantage (Part C)",
-      "Review Part D prescription drug formulary with current medications"
-    ]
   }
 ];
 
-// Helper to compute calendar year from age
+// Multi-Cultural, Seasonal & Regional Events Database
+const CULTURAL_SEASONAL_EVENTS = [
+  // --- SOUTH ASIAN / HINDU TRADITIONS ---
+  {
+    id: "fest-navratri",
+    title: "Navratri Garba & Dandiya Nights",
+    season: "October (Fall)",
+    timing: "Happening Now · Oct 2026",
+    targetAgeApprox: 32,
+    heritage: "indian",
+    religion: "hindu",
+    regions: ["bay_area", "texas", "nyc", "socal"],
+    locationDisplay: "Santa Clara / San Jose / Fremont",
+    icon: "sparkles",
+    color: "#f59e0b",
+    summary: "Dandiya Raas & Garba celebrations. Traditional Chaniya Choli/Kurta, live Gujarati bands, energetic family dancing.",
+    spots: [
+      "Santa Clara Convention Center — Grand Bay Garba with live orchestra",
+      "Fremont Hindu Temple & ICC Milpitas nightly Garba",
+      "San Jose Event Center — Family & youth Dandiya nights"
+    ],
+    tips: "Arrive before 8 PM for parking; book passes early as weekend nights sell out."
+  },
+  {
+    id: "fest-durga-puja",
+    title: "Durga Puja & Durgotsav",
+    season: "October (Fall)",
+    timing: "This Week · Oct 2026",
+    targetAgeApprox: 32,
+    heritage: "indian",
+    religion: "hindu",
+    regions: ["bay_area", "nyc", "texas"],
+    locationDisplay: "Cupertino / Sunnyvale / Fremont",
+    icon: "flame",
+    color: "#ef4444",
+    summary: "Grand pandals, Dhunuchi dance, Sindoor Khela, and traditional Bengali Bhog dinners across the Bay.",
+    spots: [
+      "Prabasi Durgotsav (San Mateo Expo / Chabot College) — Idol darshan & cultural programs",
+      "BayBasi Cupertino / Sunnyvale — Cultural food stalls & evening Aarti",
+      "Sanskriti Fremont — Traditional music & fresh Bengali sweets"
+    ],
+    tips: "Bhog coupons are usually served between 12:30 PM - 2:30 PM."
+  },
+  {
+    id: "fest-diwali",
+    title: "Diwali Lights, Mela & Fireworks",
+    season: "November (Late Fall)",
+    timing: "Coming Up · Nov 2026",
+    targetAgeApprox: 32,
+    heritage: "indian",
+    religion: "hindu",
+    regions: ["bay_area", "texas", "nyc", "socal", "seattle"],
+    locationDisplay: "Santana Row & Fremont",
+    icon: "sun",
+    color: "#eab308",
+    summary: "The festival of lights. Diya lighting ceremonies, sweet gifting boxes, fireworks, and Santana Row Diwali celebration.",
+    spots: [
+      "Santana Row Annual Diwali Celebration — Live dances, henna, and lighting display",
+      "Fremont Central Park / Temple Deepawali Fireworks Show",
+      "San Jose Diwali Bazaar — Ethnic clothing, jewelry, and sweet stalls"
+    ],
+    tips: "Pre-order mithai boxes (Kaju Katli, Ladoo) 1 week in advance."
+  },
+
+  // --- AMERICAN / REGIONAL LOCAL TRADITIONS ---
+  {
+    id: "fest-halloween-losgatos",
+    title: "Halloween on Tait Ave (Los Gatos)",
+    season: "October 31",
+    timing: "Oct 31, 2026 Tradition",
+    targetAgeApprox: 32,
+    heritage: "american",
+    religion: "secular",
+    regions: ["bay_area"],
+    locationDisplay: "Los Gatos (Tait Ave & Almond Grove)",
+    icon: "ghost",
+    color: "#f97316",
+    summary: "Legendary South Bay family Halloween hotspot. Entire Victorian streets close to cars with Hollywood-grade haunted houses and massive crowds.",
+    spots: [
+      "Tait Avenue, Los Gatos — Multi-house themed haunted displays & live DJ houses",
+      "Almond Grove Historic District — Walkable trick-or-treating for all ages",
+      "Town Plaza Park — Family costume staging and warm cider"
+    ],
+    tips: "Park near Los Gatos High School and walk in by 5:30 PM; traffic backs up quickly."
+  },
+  {
+    id: "fest-thanksgiving",
+    title: "Thanksgiving & Silicon Valley Turkey Trot",
+    season: "Late November",
+    timing: "Nov 2026 Tradition",
+    targetAgeApprox: 32,
+    heritage: "american",
+    religion: "secular",
+    regions: ["bay_area", "us_general"],
+    locationDisplay: "Downtown San Jose & Valley Fair",
+    icon: "shopping-bag",
+    color: "#84cc16",
+    summary: "Silicon Valley Turkey Trot (25,000 runners in downtown San Jose) followed by Black Friday family shopping.",
+    spots: [
+      "Silicon Valley Turkey Trot (Downtown San Jose) — 5K/10K family walk & run",
+      "Westfield Valley Fair & Santana Row — Midnight holiday shopping kickoff",
+      "Great Mall Milpitas — Holiday family outlet specials"
+    ],
+    tips: "Register for the Turkey Trot early to get your commemorative tech shirt."
+  },
+  {
+    id: "fest-christmas-vasona",
+    title: "Fantasy of Lights & Willow Glen",
+    season: "December (Winter)",
+    timing: "Dec 2026 Tradition",
+    targetAgeApprox: 32,
+    heritage: "american",
+    religion: "christian",
+    regions: ["bay_area"],
+    locationDisplay: "Los Gatos Vasona Park & San Jose",
+    icon: "tree-pine",
+    color: "#10b981",
+    summary: "Iconic South Bay holiday light traditions: 1.5-mile drive-thru animated light displays and festive neighborhood walking tours.",
+    spots: [
+      "Vasona Lake County Park (Los Gatos) — 1.5-mile drive-thru & walk-thru Fantasy of Lights",
+      "Willow Glen San Jose (Glen Eyrie / Lincoln Ave) — Hundreds of coordinated illuminated trees",
+      "Christmas in the Park (Downtown San Jose Plaza de César Chávez)"
+    ],
+    tips: "Fantasy of Lights drive-thru tickets sell out weeks in advance; book online in early November."
+  },
+
+  // --- JEWISH TRADITIONS ---
+  {
+    id: "fest-hanukkah",
+    title: "Hanukkah Menorah Lighting & Celebrations",
+    season: "December (Winter)",
+    timing: "Dec 2026 Tradition",
+    targetAgeApprox: 32,
+    heritage: "jewish",
+    religion: "jewish",
+    regions: ["bay_area", "nyc", "socal", "us_general"],
+    locationDisplay: "Santana Row & SF Union Square",
+    icon: "flame",
+    color: "#3b82f6",
+    summary: "Community Menorah lightings, latke parties, sufganiyot jelly doughnuts, and family dreidel games.",
+    spots: [
+      "Santana Row Annual Community Menorah Lighting with live klezmer music",
+      "Bill Graham Menorah in SF Union Square (San Francisco)",
+      "Palo Alto JCC Hanukkah Festival"
+    ],
+    tips: "Great for families with young kids; hot latkes and gelt drops."
+  },
+
+  // --- EAST ASIAN TRADITIONS ---
+  {
+    id: "fest-lunar-newyear",
+    title: "Lunar New Year & Spring Festival",
+    season: "Jan / Feb (Winter)",
+    timing: "Winter Tradition",
+    targetAgeApprox: 32,
+    heritage: "east_asian",
+    religion: "secular",
+    regions: ["bay_area", "nyc", "socal", "seattle"],
+    locationDisplay: "San Francisco Chinatown & Cupertino",
+    icon: "sparkles",
+    color: "#dc2626",
+    summary: "Lion dances, red envelope traditions, family reunion dinners, and the historic San Francisco Chinese New Year Parade.",
+    spots: [
+      "San Francisco Chinatown Grand Parade — Illuminated night parade with 288ft Golden Dragon",
+      "Cupertino Memorial Park Lunar New Year Festival — Cultural dances and food stalls",
+      "San Jose Vietnam Town Tet Festival — Firecrackers and ao dai pageant"
+    ],
+    tips: "SF parade requires bleacher tickets or early arrival along Kearny St."
+  },
+
+  // --- HISPANIC & LATINO TRADITIONS ---
+  {
+    id: "fest-dia-muertos",
+    title: "Día de los Muertos (Day of the Dead)",
+    season: "Nov 1 - 2",
+    timing: "Early Nov Tradition",
+    targetAgeApprox: 32,
+    heritage: "hispanic",
+    religion: "catholic",
+    regions: ["bay_area", "socal", "texas"],
+    locationDisplay: "San Jose East Side & SF Mission",
+    icon: "heart",
+    color: "#a855f7",
+    summary: "Vibrant community altares (altars), marigolds (cempasúchil), sugar skulls, and processions honoring ancestors.",
+    spots: [
+      "San Jose Eastridge / Plaza de César Chávez Día de los Muertos Festival",
+      "San Francisco Mission District Procession & Festival of Altars (24th St)",
+      "Oakland Fruitvale Día de los Muertos Festival"
+    ],
+    tips: "Face painting and traditional Pan de Muerto available at community altars."
+  }
+];
+
+// Helper to calculate calendar year from age
 function getYearForAge(age) {
   return userBirthYear + age;
+}
+
+// Filter events tailored to active user demographics
+function getActiveTimelineEvents() {
+  const events = [...CORE_LIFECYCLE_MILESTONES];
+
+  // Add cultural/seasonal events matching heritage, religion, or region
+  CULTURAL_SEASONAL_EVENTS.forEach(fest => {
+    const heritageMatch = (userDemographics.heritage === 'all') || 
+                          (fest.heritage === userDemographics.heritage) || 
+                          (fest.heritage === 'american');
+    const regionMatch = (fest.regions.includes(userDemographics.region)) || 
+                        fest.regions.includes('us_general');
+    
+    if (heritageMatch && regionMatch) {
+      events.push({
+        id: fest.id,
+        age: fest.targetAgeApprox,
+        type: "cultural",
+        isCultural: true,
+        title: fest.title,
+        timing: fest.timing,
+        category: fest.locationDisplay,
+        whatHappens: fest.summary,
+        whatPeersDo: `Where people go: ${fest.spots[0]}`,
+        actions: fest.spots,
+        tips: fest.tips,
+        color: fest.color
+      });
+    }
+  });
+
+  // Seasonal calendar chronological ordering for Age 32 / 2026
+  const seasonalOrder = {
+    "fest-navratri": 1,
+    "fest-durga-puja": 2,
+    "fest-halloween-losgatos": 3,
+    "fest-dia-muertos": 4,
+    "fest-diwali": 5,
+    "fest-thanksgiving": 6,
+    "fest-christmas-vasona": 7,
+    "fest-hanukkah": 8,
+    "fest-lunar-newyear": 9
+  };
+
+  // Sort by age, then put core milestone first, then chronological seasonal events
+  events.sort((a, b) => {
+    if (a.age !== b.age) return a.age - b.age;
+    if (a.type === 'milestone' && b.type !== 'milestone') return -1;
+    if (a.type !== 'milestone' && b.type === 'milestone') return 1;
+    const orderA = seasonalOrder[a.id] || 50;
+    const orderB = seasonalOrder[b.id] || 50;
+    return orderA - orderB;
+  });
+
+  return events;
 }

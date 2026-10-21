@@ -1,4 +1,4 @@
-// LifeLine — Mobile Phone App Controller (Fluid Zoom, Dual Age+Year, Haptic Audio & Gestures)
+// LifeLine — Mobile Phone App Controller (Vertical, S-Curve Wiggly & Horizontal)
 (function () {
   'use strict';
 
@@ -6,17 +6,12 @@
   const MASTER_PIN_HASH = '023e33504ab909cf87a6f4e4e545090e40bdc0a2153e5b68b19f7fad2b737904';
   const PIN_SESSION_KEY = 'lifeline_master_unlocked_v1';
 
-  // Base Timeline Dimensions
-  const MIN_AGE = 18;
-  const MAX_AGE = 72;
-  const BASE_PX_PER_YEAR = 36;
-  const PADDING = 160;
-
-  // State
-  let currentZoomScale = 1.8; // Default 1.8x
+  // Layout Direction Mode: 'vertical', 'wiggly', 'horizontal' (Default: vertical)
+  let currentLayout = localStorage.getItem('lifeline_layout_mode') || 'vertical';
   let isFullscreen = localStorage.getItem('lifeline_fullscreen') === 'true';
+  let horizontalZoom = 1.6; // Scale for horizontal view
 
-  // Web Audio Context for Native Mobile Audio-Haptics
+  // Web Audio Context for Mobile Audio-Haptics
   let audioCtx = null;
   function getAudioCtx() {
     if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
@@ -85,8 +80,6 @@
     function rightRotate(value, amount) {
       return (value >>> amount) | (value << (32 - amount));
     }
-    const mathPow = Math.pow;
-    const maxWord = mathPow(2, 32);
     const words = [];
     const asciiBitLength = ascii.length * 8;
     let hash = [
@@ -220,6 +213,11 @@
       if (lockEl.errorText) lockEl.errorText.textContent = '';
       pinState.buffer = '';
       updatePinDotsUI();
+
+      // Default landing: auto-scroll to Today on unlock!
+      setTimeout(() => {
+        scrollToToday(true);
+      }, 400);
     } else {
       pinState.error = true;
       updatePinDotsUI();
@@ -254,7 +252,7 @@
       lockEl.keypad.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
-        const key = btn.dataset.key;
+        const key = btn.dataset?.key;
         if (key) handlePinInput(key);
       });
     }
@@ -277,24 +275,30 @@
   }
 
   // =========================================================================
-  // Timeline Scrubber & Continuous Zoom Engine
+  // DOM References
   // =========================================================================
-  const el = {
-    viewport: document.getElementById('timeline-viewport'),
-    track: document.getElementById('timeline-track'),
-    zoomSlider: document.getElementById('continuous-zoom-slider'),
-    zoomMultiplier: document.getElementById('zoom-multiplier-readout'),
-    zoomPills: document.querySelectorAll('.zoom-pill'),
-    centerReadout: document.getElementById('center-readout'),
-    birthYearBtn: document.getElementById('birth-year-btn'),
-    birthYearLabel: document.getElementById('birth-year-label'),
-    birthYearModal: document.getElementById('settings-modal-overlay'),
-    birthYearInput: document.getElementById('birth-year-input'),
-    cancelBirthYearBtn: document.getElementById('cancel-birth-year-btn'),
-    saveBirthYearBtn: document.getElementById('save-birth-year-btn'),
-    fullscreenBtn: document.getElementById('fullscreen-toggle-btn'),
-    phoneShell: document.getElementById('phone-device-shell'),
+  const dom = {
+    mount: document.getElementById('timeline-container-mount'),
+    btnVertical: document.getElementById('btn-layout-vertical'),
+    btnWiggly: document.getElementById('btn-layout-wiggly'),
+    btnHorizontal: document.getElementById('btn-layout-horizontal'),
+    jumpTodayBtn: document.getElementById('jump-today-btn'),
+    islandLabel: document.getElementById('island-mode-label'),
     phoneClock: document.getElementById('phone-clock'),
+    fullscreenBtn: document.getElementById('fullscreen-toggle-btn'),
+
+    // Demographics Drawer
+    openDemoBtn: document.getElementById('open-demographics-btn'),
+    demoSummaryLabel: document.getElementById('demo-summary-label'),
+    demoDrawer: document.getElementById('demographics-drawer-overlay'),
+    closeDemoBtn: document.getElementById('close-demo-drawer-btn'),
+    applyDemoBtn: document.getElementById('apply-demographics-btn'),
+    heritageChips: document.getElementById('heritage-chip-group'),
+    regionChips: document.getElementById('region-chip-group'),
+    genderChips: document.getElementById('gender-chip-group'),
+    birthYearInput: document.getElementById('drawer-birth-year-input'),
+
+    // Detail Modal Sheet
     modalOverlay: document.getElementById('modal-overlay'),
     modalSheet: document.getElementById('modal-sheet'),
     sheetDragHandle: document.getElementById('sheet-drag-handle'),
@@ -307,167 +311,56 @@
     closeSheetBtn: document.getElementById('close-sheet-btn')
   };
 
-  function getEffectivePxPerYear() {
-    return BASE_PX_PER_YEAR * currentZoomScale;
+  // Helper: Format Summary Label for Top Nav
+  function updateDemoSummaryLabel() {
+    if (!dom.demoSummaryLabel) return;
+    const heritageMap = {
+      indian: "🇮🇳 Indian",
+      american: "🇺🇸 American",
+      jewish: "🕎 Jewish",
+      east_asian: "🏮 East Asian",
+      hispanic: "🇲🇽 Hispanic",
+      all: "🌐 All"
+    };
+    const regionMap = {
+      bay_area: "Bay Area",
+      socal: "SoCal",
+      nyc: "NYC",
+      texas: "Texas",
+      seattle: "Seattle",
+      us_general: "USA"
+    };
+    const hText = heritageMap[userDemographics.heritage] || "🌐 All";
+    const rText = regionMap[userDemographics.region] || "USA";
+    dom.demoSummaryLabel.textContent = `${hText} · ${rText}`;
   }
 
-  function getXForAge(age) {
-    return PADDING + (age - MIN_AGE) * getEffectivePxPerYear();
-  }
-
-  function getCenterAge() {
-    if (!el.viewport) return 32;
-    const centerPx = el.viewport.scrollLeft + (el.viewport.clientWidth / 2);
-    const age = MIN_AGE + (centerPx - PADDING) / getEffectivePxPerYear();
-    return Math.max(MIN_AGE, Math.min(MAX_AGE, age));
-  }
-
-  // Determine active LOD tier based on continuous zoom scale
-  function getMaxTierForScale() {
-    if (currentZoomScale < 1.25) return 1; // Macro: Tier 1 only
-    if (currentZoomScale < 2.3) return 2;  // Decade: Tier 1 + 2
-    return 3;                              // Detailed: All Tiers 1, 2, 3
-  }
-
-  function renderTimeline(anchorAge = 32) {
-    if (!el.track || !el.viewport) return;
-
-    const pxPerYear = getEffectivePxPerYear();
-    const totalWidth = PADDING * 2 + (MAX_AGE - MIN_AGE) * pxPerYear;
-    el.track.style.width = `${totalWidth}px`;
-
-    const axis = el.track.querySelector('.timeline-axis');
-    el.track.innerHTML = '';
-    if (axis) el.track.appendChild(axis);
-
-    // Determine tick interval
-    let tickStep = 5;
-    if (currentZoomScale < 1.2) tickStep = 10;
-    else if (currentZoomScale > 2.4) tickStep = 1;
-
-    // 1. Render Year Ticks with Dual Age + Calendar Year
-    for (let age = MIN_AGE; age <= MAX_AGE; age++) {
-      const x = getXForAge(age);
-      const isMajor = (age % tickStep === 0);
-
-      const tick = document.createElement('div');
-      tick.className = `year-tick ${isMajor ? 'major' : ''}`;
-      tick.style.left = `${x}px`;
-      el.track.appendChild(tick);
-
-      if (isMajor) {
-        const calYear = getYearForAge(age);
-        const tickLabel = document.createElement('span');
-        tickLabel.className = 'year-tick-label';
-        tickLabel.style.left = `${x}px`;
-        // Dual readout on ticks: e.g. 30 ('24) or 35 ('29)
-        const shortYear = `'${calYear.toString().slice(-2)}`;
-        tickLabel.textContent = `${age} (${shortYear})`;
-        el.track.appendChild(tickLabel);
-      }
-    }
-
-    // 2. Filter Milestones by current Semantic Zoom Scale
-    const maxTier = getMaxTierForScale();
-    const visibleEvents = LIFE_EVENTS.filter(evt => evt.tier <= maxTier);
-
-    // 3. Render Big Dots & Staggered Cards (Shows both Age and Calendar Year!)
-    visibleEvents.forEach((evt, index) => {
-      const x = getXForAge(evt.age);
-      const calYear = getYearForAge(evt.age);
-
-      // Big Glowing Dot
-      const dot = document.createElement('div');
-      dot.className = `timeline-dot ${evt.tier === 1 ? 'tier-1' : ''}`;
-      dot.style.left = `${x}px`;
-      dot.title = `Age ${evt.age} (${calYear}) · ${evt.title}`;
-
-      // Stagger Top & Bottom Alternating
-      const isTop = (index % 2 === 1);
-      const labelContainer = document.createElement('div');
-      labelContainer.className = `dot-label-container ${isTop ? 'position-top' : 'position-bottom'}`;
-      labelContainer.style.left = `${x}px`;
-
-      labelContainer.innerHTML = `
-        <div class="label-card">
-          <div class="label-timing-row">
-            <span class="label-age">Age ${evt.age}</span>
-            <span class="label-year">· ${calYear}</span>
-          </div>
-          <span class="label-title">${evt.title}</span>
-        </div>
-        <div class="label-stem"></div>
-      `;
-
-      // Tap Dot: Ripple Shockwave Animation & Open Sheet
-      dot.addEventListener('click', (e) => {
-        e.stopPropagation();
-        haptic(20);
-
-        // Spawn Expanding Ripple Animation
-        const ripple = document.createElement('div');
-        ripple.className = 'dot-ripple';
-        dot.appendChild(ripple);
-        setTimeout(() => ripple.remove(), 500);
-
-        openDetailSheet(evt);
-      });
-
-      el.track.appendChild(labelContainer);
-      el.track.appendChild(dot);
-    });
-
-    // Update Zoom readouts
-    if (el.zoomSlider) el.zoomSlider.value = currentZoomScale;
-    if (el.zoomMultiplier) el.zoomMultiplier.textContent = `${currentZoomScale.toFixed(1)}x`;
-
-    // Center on Anchor Age
-    const targetX = getXForAge(anchorAge);
-    const scrollTarget = targetX - (el.viewport.clientWidth / 2);
-    el.viewport.scrollLeft = scrollTarget;
-
-    updateCenterReadout();
-  }
-
-  function setContinuousZoom(newScale) {
-    const clamped = Math.max(0.6, Math.min(3.5, newScale));
-    if (Math.abs(clamped - currentZoomScale) < 0.01) return;
-
-    const anchorAge = getCenterAge();
-    currentZoomScale = clamped;
-
-    // Update active mode chip
-    el.zoomPills.forEach(pill => {
-      const scale = parseFloat(pill.dataset.scale);
-      if (Math.abs(scale - currentZoomScale) < 0.3) {
-        pill.classList.add('active');
-      } else {
-        pill.classList.remove('active');
-      }
-    });
-
-    renderTimeline(anchorAge);
-  }
-
-  function updateCenterReadout() {
-    if (!el.centerReadout) return;
-    const centerAge = Math.round(getCenterAge());
-    const calYear = getYearForAge(centerAge);
-    el.centerReadout.textContent = `Age ${centerAge} · ${calYear}`;
-  }
-
+  // =========================================================================
+  // DETAIL MODAL SHEET CONTROLLER
+  // =========================================================================
   function openDetailSheet(evt) {
-    if (!el.modalOverlay) return;
+    if (!dom.modalOverlay) return;
     const calYear = getYearForAge(evt.age);
 
-    if (el.sheetBadge) el.sheetBadge.textContent = `Age ${evt.age} · ${evt.category}`;
-    if (el.sheetYearBadge) el.sheetYearBadge.textContent = `Year ${calYear}`;
-    if (el.sheetHeaderTitle) el.sheetHeaderTitle.textContent = evt.title;
-    if (el.sheetWhatHappens) el.sheetWhatHappens.textContent = evt.whatHappens;
-    if (el.sheetWhatPeersDo) el.sheetWhatPeersDo.textContent = `“${evt.whatPeersDo}”`;
+    if (dom.sheetBadge) {
+      dom.sheetBadge.textContent = evt.isCultural ? (evt.timing || `Age ${evt.age} · Tradition`) : `Age ${evt.age} · ${evt.category}`;
+    }
+    if (dom.sheetYearBadge) {
+      dom.sheetYearBadge.textContent = `Year ${calYear}`;
+    }
+    if (dom.sheetHeaderTitle) {
+      dom.sheetHeaderTitle.textContent = evt.title;
+    }
+    if (dom.sheetWhatHappens) {
+      dom.sheetWhatHappens.textContent = evt.whatHappens;
+    }
+    if (dom.sheetWhatPeersDo) {
+      dom.sheetWhatPeersDo.textContent = `“${evt.whatPeersDo}”`;
+    }
 
-    if (el.sheetActionsList) {
-      el.sheetActionsList.innerHTML = evt.actions.map(action => `
+    if (dom.sheetActionsList) {
+      const items = evt.actions || [];
+      dom.sheetActionsList.innerHTML = items.map(action => `
         <li class="action-row">
           <span class="action-dot"></span>
           <span>${action}</span>
@@ -475,20 +368,19 @@
       `).join('');
     }
 
-    el.modalOverlay.classList.add('open');
+    dom.modalOverlay.classList.add('open');
   }
 
   function closeDetailSheet() {
     haptic(10);
-    if (el.modalOverlay) {
-      el.modalOverlay.classList.remove('open');
+    if (dom.modalOverlay) {
+      dom.modalOverlay.classList.remove('open');
     }
   }
 
-  // Interactive Drag-to-Dismiss Bottom Sheet
   function setupDragToDismissSheet() {
-    const sheet = el.modalSheet;
-    const handle = el.sheetDragHandle;
+    const sheet = dom.modalSheet;
+    const handle = dom.sheetDragHandle;
     if (!sheet || !handle) return;
 
     let startY = 0;
@@ -532,156 +424,575 @@
     window.addEventListener('mouseup', onTouchEnd);
   }
 
-  // Double Tap to Zoom into Specific Age
-  function setupDoubleTapZoom() {
-    let lastTap = 0;
-    const v = el.viewport;
-    if (!v) return;
+  // =========================================================================
+  // LAYOUT 1: VERTICAL TIMELINE (Full Phone Screen Utilization)
+  // =========================================================================
+  function renderVerticalLayout(events) {
+    dom.mount.innerHTML = '';
 
-    v.addEventListener('click', (e) => {
-      const now = Date.now();
-      if (now - lastTap < 300) {
-        // Double tap!
-        haptic(15);
-        if (currentZoomScale < 2.5) {
-          setContinuousZoom(currentZoomScale * 1.5);
-        } else {
-          setContinuousZoom(1.0); // Reset
-        }
+    const viewport = document.createElement('div');
+    viewport.className = 'timeline-viewport-vertical';
+    viewport.id = 'active-timeline-viewport';
+
+    const track = document.createElement('div');
+    track.className = 'vertical-track';
+    
+    // Total track height: spaced gracefully
+    const rowHeight = 125;
+    const totalHeight = events.length * rowHeight + 200;
+    track.style.minHeight = `${totalHeight}px`;
+
+    // Central Luminous Beam
+    const beam = document.createElement('div');
+    beam.className = 'vertical-axis-beam';
+    track.appendChild(beam);
+
+    events.forEach((evt, idx) => {
+      const isLeft = (idx % 2 === 0);
+      const isToday = (evt.id === 'core-32');
+      const calYear = getYearForAge(evt.age);
+      const y = idx * rowHeight + 90;
+
+      const row = document.createElement('div');
+      row.className = `vertical-item-row ${isLeft ? 'align-left' : 'align-right'}`;
+      row.style.top = `${y}px`;
+      if (isToday) row.id = 'today-anchor-row';
+
+      // Horizontal connecting stem line
+      const stem = document.createElement('div');
+      stem.className = 'vertical-stem-line';
+      row.appendChild(stem);
+
+      // Center Node on the Beam
+      const dot = document.createElement('div');
+      dot.className = `vertical-dot-node ${isToday ? 'today-node' : ''}`;
+      dot.title = `Age ${evt.age} (${calYear}) · ${evt.title}`;
+
+      // Today Animated Radar Ping Rings
+      if (isToday) {
+        const beacon = document.createElement('div');
+        beacon.className = 'today-beacon';
+        beacon.style.top = '50%';
+        beacon.style.left = '50%';
+        beacon.innerHTML = `
+          <div class="today-beacon-ring"></div>
+          <div class="today-beacon-ring"></div>
+        `;
+        dot.appendChild(beacon);
       }
-      lastTap = now;
+
+      // Card Content
+      const card = document.createElement('div');
+      card.className = `vertical-card ${evt.isCultural ? 'cultural' : ''} ${isToday ? 'today-highlight' : ''}`;
+      
+      const badgeText = isToday ? 'TODAY · OCT 2026' : (evt.isCultural ? (evt.timing || 'Tradition') : `Age ${evt.age}`);
+      const tagColor = isToday ? '#34d399' : (evt.isCultural ? '#f59e0b' : '#38bdf8');
+
+      card.innerHTML = `
+        <div class="card-badge-row">
+          <span class="card-age-tag" style="color: ${tagColor};">${badgeText}</span>
+          <span class="card-year-tag">${calYear}</span>
+        </div>
+        <div class="card-title">${evt.title}</div>
+        <div class="card-category">${evt.category || 'Lifecycle Stage'}</div>
+      `;
+
+      // Tactile Tap Handlers
+      function handleItemTap(e) {
+        e.stopPropagation();
+        haptic(18);
+
+        // Tactile ripple shockwave
+        const ripple = document.createElement('div');
+        ripple.className = 'dot-ripple';
+        dot.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 550);
+
+        openDetailSheet(evt);
+      }
+
+      dot.addEventListener('click', handleItemTap);
+      card.addEventListener('click', handleItemTap);
+
+      row.appendChild(card);
+      row.appendChild(dot);
+      track.appendChild(row);
     });
+
+    viewport.appendChild(track);
+    dom.mount.appendChild(viewport);
   }
 
-  // Touch Pinch-to-Zoom & Pan Gestures
-  function setupGestures() {
-    const v = el.viewport;
-    if (!v) return;
+  // =========================================================================
+  // LAYOUT 2: S-CURVE WIGGLY RIVER PATH (Live Liquid Life Path)
+  // =========================================================================
+  function renderWigglyLayout(events) {
+    dom.mount.innerHTML = '';
 
-    // Mouse drag
-    let isDown = false;
-    let startX;
-    let scrollLeft;
+    const viewport = document.createElement('div');
+    viewport.className = 'timeline-viewport-wiggly';
+    viewport.id = 'active-timeline-viewport';
 
-    v.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - v.offsetLeft;
-      scrollLeft = v.scrollLeft;
+    const track = document.createElement('div');
+    track.className = 'wiggly-track';
+
+    const rowHeight = 135;
+    const totalHeight = events.length * rowHeight + 220;
+    track.style.minHeight = `${totalHeight}px`;
+
+    // Calculate curve points
+    const phoneWidth = Math.min(dom.mount.clientWidth || 390, 420);
+    const leftX = phoneWidth * 0.28;
+    const rightX = phoneWidth * 0.72;
+
+    const points = events.map((evt, idx) => {
+      const isLeft = (idx % 2 === 0);
+      return {
+        x: isLeft ? leftX : rightX,
+        y: idx * rowHeight + 90,
+        isLeft,
+        evt,
+        isToday: (evt.id === 'core-32')
+      };
     });
 
-    v.addEventListener('mouseleave', () => { isDown = false; });
-    v.addEventListener('mouseup', () => { isDown = false; });
+    // Build SVG Bézier River Path
+    let pathD = '';
+    if (points.length > 0) {
+      pathD = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1];
+        const curr = points[i];
+        const cpY = (prev.y + curr.y) / 2;
+        pathD += ` C ${prev.x} ${cpY}, ${curr.x} ${cpY}, ${curr.x} ${curr.y}`;
+      }
+    }
 
-    v.addEventListener('mousemove', (e) => {
+    const svgNs = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNs, "svg");
+    svg.setAttribute("class", "wiggly-svg-canvas");
+    svg.setAttribute("viewBox", `0 0 ${phoneWidth} ${totalHeight}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="riverGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.8" />
+          <stop offset="30%" stop-color="#06b6d4" stop-opacity="0.95" />
+          <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.9" />
+          <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.8" />
+        </linearGradient>
+      </defs>
+      <path class="wiggly-river-path" d="${pathD}" />
+      <path class="wiggly-energy-pulse" d="${pathD}" />
+    `;
+    track.appendChild(svg);
+
+    // Place Nodes along the River Path
+    points.forEach(pt => {
+      const calYear = getYearForAge(pt.evt.age);
+
+      const anchor = document.createElement('div');
+      anchor.className = 'wiggly-node-anchor';
+      anchor.style.left = `${pt.x}px`;
+      anchor.style.top = `${pt.y}px`;
+      if (pt.isToday) anchor.id = 'today-anchor-row';
+
+      const dot = document.createElement('div');
+      dot.className = `wiggly-dot-node ${pt.isToday ? 'today-node' : ''}`;
+      dot.title = `Age ${pt.evt.age} (${calYear}) · ${pt.evt.title}`;
+
+      // Today Radar Beacon
+      if (pt.isToday) {
+        const beacon = document.createElement('div');
+        beacon.className = 'today-beacon';
+        beacon.style.top = '50%';
+        beacon.style.left = '50%';
+        beacon.innerHTML = `
+          <div class="today-beacon-ring"></div>
+          <div class="today-beacon-ring"></div>
+        `;
+        dot.appendChild(beacon);
+      }
+
+      // Card sits on roomy side of river meander
+      const card = document.createElement('div');
+      card.className = `wiggly-card ${pt.isLeft ? 'card-on-right' : 'card-on-left'} ${pt.evt.isCultural ? 'cultural' : ''} ${pt.isToday ? 'today-highlight' : ''}`;
+
+      const badgeText = pt.isToday ? 'TODAY · OCT 2026' : (pt.evt.isCultural ? (pt.evt.timing || 'Tradition') : `Age ${pt.evt.age}`);
+      const tagColor = pt.isToday ? '#34d399' : (pt.evt.isCultural ? '#f59e0b' : '#38bdf8');
+
+      card.innerHTML = `
+        <div class="card-badge-row">
+          <span class="card-age-tag" style="color: ${tagColor};">${badgeText}</span>
+          <span class="card-year-tag">${calYear}</span>
+        </div>
+        <div class="card-title">${pt.evt.title}</div>
+        <div class="card-category">${pt.evt.category || 'Lifecycle Stage'}</div>
+      `;
+
+      function handleItemTap(e) {
+        e.stopPropagation();
+        haptic(18);
+
+        const ripple = document.createElement('div');
+        ripple.className = 'dot-ripple';
+        dot.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 550);
+
+        openDetailSheet(pt.evt);
+      }
+
+      dot.addEventListener('click', handleItemTap);
+      card.addEventListener('click', handleItemTap);
+
+      anchor.appendChild(dot);
+      anchor.appendChild(card);
+      track.appendChild(anchor);
+    });
+
+    viewport.appendChild(track);
+    dom.mount.appendChild(viewport);
+  }
+
+  // =========================================================================
+  // LAYOUT 3: HORIZONTAL SCRUBBER (With Zoom & Staggered Cards)
+  // =========================================================================
+  function renderHorizontalLayout(events) {
+    dom.mount.innerHTML = '';
+
+    const viewport = document.createElement('div');
+    viewport.className = 'timeline-viewport-horizontal';
+    viewport.id = 'active-timeline-viewport';
+
+    const track = document.createElement('div');
+    track.className = 'horizontal-track';
+
+    const minAge = 18;
+    const maxAge = 72;
+    const pxPerYear = 48 * horizontalZoom;
+    const padding = 180;
+    const totalWidth = padding * 2 + (maxAge - minAge) * pxPerYear;
+    track.style.width = `${totalWidth}px`;
+
+    // Horizontal Glowing Axis Line
+    const axis = document.createElement('div');
+    axis.className = 'horizontal-axis';
+    track.appendChild(axis);
+
+    // Year Ticks & Labels
+    for (let age = minAge; age <= maxAge; age++) {
+      const x = padding + (age - minAge) * pxPerYear;
+      const isMajor = (age % 5 === 0);
+
+      const tick = document.createElement('div');
+      tick.className = `year-tick ${isMajor ? 'major' : ''}`;
+      tick.style.left = `${x}px`;
+      track.appendChild(tick);
+
+      if (isMajor) {
+        const calYear = getYearForAge(age);
+        const label = document.createElement('span');
+        label.className = 'year-tick-label';
+        label.style.left = `${x}px`;
+        label.textContent = `${age} ('${calYear.toString().slice(-2)})`;
+        track.appendChild(label);
+      }
+    }
+
+    // Nodes and Alternating Top / Bottom Cards
+    let ageClusterCounts = {};
+    events.forEach((evt, idx) => {
+      const isToday = (evt.id === 'core-32');
+      const calYear = getYearForAge(evt.age);
+
+      // Stagger multiple events sharing the same age
+      if (!ageClusterCounts[evt.age]) ageClusterCounts[evt.age] = 0;
+      const subIndex = ageClusterCounts[evt.age]++;
+      const clusterOffset = subIndex * 62; // 62px spacing between items of same age
+
+      const x = padding + (evt.age - minAge) * pxPerYear + clusterOffset;
+      const isTop = (idx % 2 === 1);
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'horizontal-node-wrapper';
+      wrapper.style.left = `${x}px`;
+      if (isToday) wrapper.id = 'today-anchor-row';
+
+      // Dot Node
+      const dot = document.createElement('div');
+      dot.className = `horizontal-dot ${isToday ? 'today-node' : ''}`;
+      dot.title = `Age ${evt.age} (${calYear}) · ${evt.title}`;
+
+      if (isToday) {
+        const beacon = document.createElement('div');
+        beacon.className = 'today-beacon';
+        beacon.style.top = '50%';
+        beacon.style.left = '50%';
+        beacon.innerHTML = `
+          <div class="today-beacon-ring"></div>
+          <div class="today-beacon-ring"></div>
+        `;
+        dot.appendChild(beacon);
+      }
+
+      // Vertical connecting stem
+      const stem = document.createElement('div');
+      stem.className = `horizontal-stem ${isTop ? 'stem-top' : 'stem-bottom'}`;
+
+      // Card
+      const card = document.createElement('div');
+      card.className = `horizontal-card ${isTop ? 'position-top' : 'position-bottom'} ${evt.isCultural ? 'cultural' : ''} ${isToday ? 'today-highlight' : ''}`;
+
+      const badgeText = isToday ? 'TODAY · OCT 2026' : (evt.isCultural ? (evt.timing || 'Tradition') : `Age ${evt.age}`);
+      const tagColor = isToday ? '#34d399' : (evt.isCultural ? '#f59e0b' : '#38bdf8');
+
+      card.innerHTML = `
+        <div class="card-badge-row">
+          <span class="card-age-tag" style="color: ${tagColor};">${badgeText}</span>
+          <span class="card-year-tag">${calYear}</span>
+        </div>
+        <div class="card-title">${evt.title}</div>
+        <div class="card-category">${evt.category || 'Lifecycle Stage'}</div>
+      `;
+
+      function handleItemTap(e) {
+        e.stopPropagation();
+        haptic(18);
+
+        const ripple = document.createElement('div');
+        ripple.className = 'dot-ripple';
+        dot.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 550);
+
+        openDetailSheet(evt);
+      }
+
+      dot.addEventListener('click', handleItemTap);
+      card.addEventListener('click', handleItemTap);
+
+      wrapper.appendChild(stem);
+      wrapper.appendChild(card);
+      wrapper.appendChild(dot);
+      track.appendChild(wrapper);
+    });
+
+    viewport.appendChild(track);
+    dom.mount.appendChild(viewport);
+
+    // Horizontal Drag Panning
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    viewport.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - viewport.offsetLeft;
+      scrollLeft = viewport.scrollLeft;
+    });
+    window.addEventListener('mouseup', () => { isDown = false; });
+    viewport.addEventListener('mousemove', (e) => {
       if (!isDown) return;
       e.preventDefault();
-      const x = e.pageX - v.offsetLeft;
-      const walk = (x - startX) * 1.6;
-      v.scrollLeft = scrollLeft - walk;
-      updateCenterReadout();
+      const x = e.pageX - viewport.offsetLeft;
+      viewport.scrollLeft = scrollLeft - (x - startX) * 1.5;
     });
-
-    v.addEventListener('scroll', () => {
-      updateCenterReadout();
-    }, { passive: true });
-
-    // Touch Pinch-to-Zoom
-    let initialPinchDistance = null;
-    let startScale = currentZoomScale;
-
-    v.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2) {
-        initialPinchDistance = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
-        startScale = currentZoomScale;
-      }
-    }, { passive: true });
-
-    v.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2 && initialPinchDistance !== null) {
-        const currentDistance = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
-        const ratio = currentDistance / initialPinchDistance;
-        const targetScale = startScale * ratio;
-        setContinuousZoom(targetScale);
-      }
-    }, { passive: true });
-
-    v.addEventListener('touchend', () => {
-      initialPinchDistance = null;
-    });
-
-    // Trackpad Pinch / Ctrl-Wheel Zoom
-    v.addEventListener('wheel', (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const delta = e.deltaY * -0.01;
-        setContinuousZoom(currentZoomScale + delta);
-      }
-    }, { passive: false });
   }
 
-  // Live Phone Clock (9:41 or real device time)
-  function startLiveClock() {
-    function updateClock() {
-      if (!el.phoneClock) return;
-      const d = new Date();
-      let h = d.getHours();
-      const m = d.getMinutes().toString().padStart(2, '0');
-      h = h % 12 || 12;
-      el.phoneClock.textContent = `${h}:${m}`;
+  // =========================================================================
+  // RENDER MASTER & DEFAULT LANDING ON TODAY
+  // =========================================================================
+  function renderActiveLayout() {
+    const events = getActiveTimelineEvents();
+
+    if (currentLayout === 'vertical') {
+      renderVerticalLayout(events);
+      if (dom.islandLabel) dom.islandLabel.textContent = 'VERTICAL';
+    } else if (currentLayout === 'wiggly') {
+      renderWigglyLayout(events);
+      if (dom.islandLabel) dom.islandLabel.textContent = 'S-CURVE';
+    } else {
+      renderHorizontalLayout(events);
+      if (dom.islandLabel) dom.islandLabel.textContent = 'HORIZ';
     }
-    updateClock();
-    setInterval(updateClock, 15000);
+
+    updateLayoutSwitcherUI();
   }
 
-  function setupControls() {
-    // Zoom Slider
-    if (el.zoomSlider) {
-      el.zoomSlider.addEventListener('input', (e) => {
-        setContinuousZoom(parseFloat(e.target.value));
-      });
-    }
-
-    // Quick Zoom Mode Chips
-    el.zoomPills.forEach(pill => {
-      pill.addEventListener('click', () => {
-        haptic(10);
-        const scale = parseFloat(pill.dataset.scale);
-        setContinuousZoom(scale);
-      });
-    });
-
-    // Birth Year Settings Modal
-    if (el.birthYearBtn && el.birthYearModal) {
-      el.birthYearBtn.addEventListener('click', () => {
-        haptic(10);
-        if (el.birthYearInput) el.birthYearInput.value = userBirthYear;
-        el.birthYearModal.classList.add('open');
-      });
-    }
-
-    if (el.cancelBirthYearBtn && el.birthYearModal) {
-      el.cancelBirthYearBtn.addEventListener('click', () => {
-        el.birthYearModal.classList.remove('open');
-      });
-    }
-
-    if (el.saveBirthYearBtn && el.birthYearModal) {
-      el.saveBirthYearBtn.addEventListener('click', () => {
-        haptic(20);
-        const val = parseInt(el.birthYearInput.value, 10);
-        if (val >= 1940 && val <= 2026) {
-          userBirthYear = val;
-          localStorage.setItem('lifeline_birth_year', val);
-          if (el.birthYearLabel) el.birthYearLabel.textContent = `Born ${val}`;
-          el.birthYearModal.classList.remove('open');
-          renderTimeline(32);
+  function updateLayoutSwitcherUI() {
+    [dom.btnVertical, dom.btnWiggly, dom.btnHorizontal].forEach(btn => {
+      if (btn && btn.dataset) {
+        if (btn.dataset.layout === currentLayout) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
         }
+      }
+    });
+  }
+
+  // DEFAULT LANDING: Focus directly on Today (Age 32 · Oct 2026)
+  function scrollToToday(animate = true) {
+    const viewport = document.getElementById('active-timeline-viewport');
+    const todayEl = document.getElementById('today-anchor-row');
+    if (!viewport || !todayEl) return;
+
+    if (currentLayout === 'horizontal') {
+      const targetLeft = todayEl.offsetLeft - (viewport.clientWidth / 2);
+      viewport.scrollTo({
+        left: targetLeft,
+        behavior: animate ? 'smooth' : 'auto'
+      });
+    } else {
+      const targetTop = todayEl.offsetTop - (viewport.clientHeight / 2);
+      viewport.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: animate ? 'smooth' : 'auto'
+      });
+    }
+
+    // Trigger subtle beacon pulse highlight
+    const node = todayEl.querySelector('.vertical-dot-node, .wiggly-dot-node, .horizontal-dot');
+    if (node) {
+      node.style.transform = 'scale(1.4)';
+      setTimeout(() => {
+        node.style.transform = '';
+      }, 400);
+    }
+  }
+
+  // Switch Layout Direction
+  function setLayoutMode(mode) {
+    if (currentLayout === mode) return;
+    haptic(12);
+    currentLayout = mode;
+    localStorage.setItem('lifeline_layout_mode', mode);
+    renderActiveLayout();
+    setTimeout(() => {
+      scrollToToday(true);
+    }, 150);
+  }
+
+  // =========================================================================
+  // DEMOGRAPHICS & CULTURAL FILTER DRAWER
+  // =========================================================================
+  function setupDemographicsDrawer() {
+    updateDemoSummaryLabel();
+
+    if (dom.openDemoBtn && dom.demoDrawer) {
+      dom.openDemoBtn.addEventListener('click', () => {
+        haptic(10);
+        // Sync active state of chips in drawer
+        syncDrawerForm();
+        dom.demoDrawer.classList.add('open');
+      });
+    }
+
+    if (dom.closeDemoBtn && dom.demoDrawer) {
+      dom.closeDemoBtn.addEventListener('click', () => {
+        haptic(10);
+        dom.demoDrawer.classList.remove('open');
+      });
+    }
+
+    // Heritage Chips
+    if (dom.heritageChips) {
+      dom.heritageChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.filter-choice-chip');
+        if (!chip) return;
+        haptic(8);
+        dom.heritageChips.querySelectorAll('.filter-choice-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    }
+
+    // Region Chips
+    if (dom.regionChips) {
+      dom.regionChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.filter-choice-chip');
+        if (!chip) return;
+        haptic(8);
+        dom.regionChips.querySelectorAll('.filter-choice-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    }
+
+    // Gender Chips
+    if (dom.genderChips) {
+      dom.genderChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.filter-choice-chip');
+        if (!chip) return;
+        haptic(8);
+        dom.genderChips.querySelectorAll('.filter-choice-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    }
+
+    // Apply Settings
+    if (dom.applyDemoBtn) {
+      dom.applyDemoBtn.addEventListener('click', () => {
+        haptic(20);
+
+        const activeHeritage = dom.heritageChips ? dom.heritageChips.querySelector('.active')?.dataset.heritage || 'indian' : 'indian';
+        const activeRegion = dom.regionChips ? dom.regionChips.querySelector('.active')?.dataset.region || 'bay_area' : 'bay_area';
+        const activeGender = dom.genderChips ? dom.genderChips.querySelector('.active')?.dataset.gender || 'all' : 'all';
+        const birthYear = parseInt(dom.birthYearInput?.value || '1994', 10);
+
+        userDemographics.heritage = activeHeritage;
+        userDemographics.region = activeRegion;
+        userDemographics.gender = activeGender;
+        userBirthYear = (birthYear >= 1940 && birthYear <= 2026) ? birthYear : 1994;
+
+        localStorage.setItem('lifeline_user_demographics', JSON.stringify(userDemographics));
+        localStorage.setItem('lifeline_birth_year', userBirthYear);
+
+        updateDemoSummaryLabel();
+        dom.demoDrawer.classList.remove('open');
+
+        // Re-render and scroll to Today
+        renderActiveLayout();
+        setTimeout(() => {
+          scrollToToday(true);
+        }, 150);
+      });
+    }
+  }
+
+  function syncDrawerForm() {
+    if (dom.heritageChips) {
+      dom.heritageChips.querySelectorAll('.filter-choice-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.heritage === userDemographics.heritage);
+      });
+    }
+    if (dom.regionChips) {
+      dom.regionChips.querySelectorAll('.filter-choice-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.region === userDemographics.region);
+      });
+    }
+    if (dom.genderChips) {
+      dom.genderChips.querySelectorAll('.filter-choice-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.gender === (userDemographics.gender || 'all'));
+      });
+    }
+    if (dom.birthYearInput) {
+      dom.birthYearInput.value = userBirthYear;
+    }
+  }
+
+  // =========================================================================
+  // CONTROLS & EVENT LISTENERS
+  // =========================================================================
+  function setupControls() {
+    // Layout switcher buttons
+    if (dom.btnVertical) dom.btnVertical.addEventListener('click', () => setLayoutMode('vertical'));
+    if (dom.btnWiggly) dom.btnWiggly.addEventListener('click', () => setLayoutMode('wiggly'));
+    if (dom.btnHorizontal) dom.btnHorizontal.addEventListener('click', () => setLayoutMode('horizontal'));
+
+    // Jump to Today button
+    if (dom.jumpTodayBtn) {
+      dom.jumpTodayBtn.addEventListener('click', () => {
+        haptic(15);
+        scrollToToday(true);
       });
     }
 
@@ -689,31 +1000,32 @@
     function updateFullscreenUI() {
       if (isFullscreen) {
         document.body.classList.add('fullscreen-active');
-        if (el.fullscreenBtn) el.fullscreenBtn.textContent = '📱';
+        if (dom.fullscreenBtn) dom.fullscreenBtn.textContent = '📱';
       } else {
         document.body.classList.remove('fullscreen-active');
-        if (el.fullscreenBtn) el.fullscreenBtn.textContent = '🖥️';
+        if (dom.fullscreenBtn) dom.fullscreenBtn.textContent = '🖥️';
       }
     }
     updateFullscreenUI();
 
-    if (el.fullscreenBtn) {
-      el.fullscreenBtn.addEventListener('click', () => {
+    if (dom.fullscreenBtn) {
+      dom.fullscreenBtn.addEventListener('click', () => {
         haptic(10);
         isFullscreen = !isFullscreen;
         localStorage.setItem('lifeline_fullscreen', isFullscreen);
         updateFullscreenUI();
-        renderTimeline(getCenterAge());
+        renderActiveLayout();
+        setTimeout(() => scrollToToday(false), 100);
       });
     }
 
     // Detail Sheet Close
-    if (el.closeSheetBtn) {
-      el.closeSheetBtn.addEventListener('click', closeDetailSheet);
+    if (dom.closeSheetBtn) {
+      dom.closeSheetBtn.addEventListener('click', closeDetailSheet);
     }
-    if (el.modalOverlay) {
-      el.modalOverlay.addEventListener('click', (e) => {
-        if (e.target === el.modalOverlay) {
+    if (dom.modalOverlay) {
+      dom.modalOverlay.addEventListener('click', (e) => {
+        if (e.target === dom.modalOverlay) {
           closeDetailSheet();
         }
       });
@@ -722,25 +1034,47 @@
     window.addEventListener('keydown', (e) => {
       if (pinState.unlocked) {
         if (e.key === 'Escape') closeDetailSheet();
-        if (e.key === '+' || e.key === '=') setContinuousZoom(currentZoomScale + 0.2);
-        if (e.key === '-' || e.key === '_') setContinuousZoom(currentZoomScale - 0.2);
       }
     });
 
     window.addEventListener('resize', () => {
-      renderTimeline(getCenterAge());
+      renderActiveLayout();
     });
   }
 
+  // Live Phone Clock
+  function startLiveClock() {
+    function updateClock() {
+      if (!dom.phoneClock) return;
+      const d = new Date();
+      let h = d.getHours();
+      const m = d.getMinutes().toString().padStart(2, '0');
+      h = h % 12 || 12;
+      dom.phoneClock.textContent = `${h}:${m}`;
+    }
+    updateClock();
+    setInterval(updateClock, 15000);
+  }
+
+  // =========================================================================
+  // APP INITIALIZATION
+  // =========================================================================
   function init() {
-    if (el.birthYearLabel) el.birthYearLabel.textContent = `Born ${userBirthYear}`;
     startLiveClock();
     setupPinSecurity();
-    setupGestures();
-    setupDoubleTapZoom();
     setupDragToDismissSheet();
+    setupDemographicsDrawer();
     setupControls();
-    renderTimeline(32);
+
+    // Render active layout
+    renderActiveLayout();
+
+    // Default landing: scroll directly to Today if unlocked
+    if (pinState.unlocked) {
+      setTimeout(() => {
+        scrollToToday(false);
+      }, 250);
+    }
   }
 
   if (document.readyState === 'loading') {
