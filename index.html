@@ -3,7 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>LifeLine — Semantic Lifecycle Timeline</title>
+  <title>LifeLine — The Human Lifecycle</title>
+  
+  <!-- Native Phone App Meta Tags (iOS & Android) -->
+  <meta name="application-name" content="LifeLine">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LifeLine">
+  <meta name="theme-color" content="#090a0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- App Icons -->
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,13 +29,13 @@
        PIN Lock Gate (Secured with Master PIN: 2019, same as Freya App)
        ===================================================================== -->
   <div class="pin-lock-container" id="pin-lock-screen">
-    <div style="text-align: center; margin-top: 18px;">
-      <div style="width: 52px; height: 52px; border-radius: 18px; background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--accent);">
+    <div style="text-align: center; margin-top: 14px;">
+      <div style="width: 54px; height: 54px; border-radius: 18px; background: rgba(37, 99, 235, 0.12); border: 1px solid rgba(37, 99, 235, 0.25); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--accent);">
         <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
         </svg>
       </div>
-      <h2 style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px;">LifeLine is Locked</h2>
+      <h2 style="font-size: 19px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px;">LifeLine is Locked</h2>
       <p style="font-size: 12px; color: var(--text-muted); max-width: 250px; margin: 0 auto; line-height: 1.4;">
         Enter the 4-digit Master PIN to view the lifecycle.
       </p>
@@ -61,7 +78,7 @@
   </div>
 
   <!-- =====================================================================
-       Main App: Unlocked View (Line with Dots)
+       Main Phone App: Unlocked View (Line with Dots)
        ===================================================================== -->
   <header class="mobile-header">
     <div style="display: flex; align-items: center; gap: 8px;">
@@ -94,7 +111,7 @@
     <button class="zoom-btn-icon" id="zoom-in-btn" title="Zoom In">+</button>
   </footer>
 
-  <!-- Clean Detail Modal Sheet (Zero Bloat) -->
+  <!-- Clean Detail Modal Sheet (Zero Bloat Phone Drawer) -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-sheet" id="modal-sheet">
       <div class="drag-handle"></div>

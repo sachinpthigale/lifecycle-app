@@ -1,10 +1,26 @@
-// LifeLine — Production Controller with Master PIN Security & Semantic Zoom
+// LifeLine — Production Phone App Controller (Master PIN, Haptics & Service Worker)
 (function () {
   'use strict';
 
   // Master PIN Hash (SHA-256 of '2019', identical to Freya App)
   const MASTER_PIN_HASH = '023e33504ab909cf87a6f4e4e545090e40bdc0a2153e5b68b19f7fad2b737904';
   const PIN_SESSION_KEY = 'lifeline_master_unlocked_v1';
+
+  // Register Phone App Service Worker for Offline & Fast App Launch
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+  }
+
+  // Native Mobile Haptic Feedback Helper
+  function haptic(ms = 10) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (e) {}
+    }
+  }
 
   // Pure JavaScript SHA-256 Hash Implementation
   function sha256(ascii) {
@@ -120,6 +136,7 @@
 
   function handlePinInput(key) {
     if (pinState.error) return;
+    haptic(12);
 
     if (key === 'clear') {
       pinState.buffer = '';
@@ -148,6 +165,7 @@
 
     if (enteredHash === MASTER_PIN_HASH) {
       // Success! Unlock app
+      haptic(25);
       pinState.unlocked = true;
       sessionStorage.setItem(PIN_SESSION_KEY, 'true');
       if (lockEl.screen) lockEl.screen.classList.add('unlocked');
@@ -156,6 +174,7 @@
       updatePinDotsUI();
     } else {
       // Failed PIN: shake animation and clear
+      haptic([30, 50, 30]);
       pinState.error = true;
       updatePinDotsUI();
       if (lockEl.dotsContainer) lockEl.dotsContainer.classList.add('pin-shake');
@@ -171,6 +190,7 @@
   }
 
   function lockApp() {
+    haptic(15);
     pinState.unlocked = false;
     sessionStorage.removeItem(PIN_SESSION_KEY);
     pinState.buffer = '';
@@ -180,12 +200,10 @@
   }
 
   function setupPinSecurity() {
-    // If already unlocked in this session, hide screen immediately
     if (pinState.unlocked && lockEl.screen) {
       lockEl.screen.classList.add('unlocked');
     }
 
-    // Keypad button clicks
     if (lockEl.keypad) {
       lockEl.keypad.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
@@ -195,7 +213,6 @@
       });
     }
 
-    // Physical keyboard input
     window.addEventListener('keydown', (e) => {
       if (!pinState.unlocked) {
         if (/^[0-9]$/.test(e.key)) {
@@ -208,7 +225,6 @@
       }
     });
 
-    // Lock button in top bar
     if (lockEl.lockBtn) {
       lockEl.lockBtn.addEventListener('click', lockApp);
     }
@@ -335,6 +351,7 @@
 
       dot.addEventListener('click', (e) => {
         e.stopPropagation();
+        haptic(15);
         openDetailSheet(evt);
       });
 
@@ -366,6 +383,7 @@
 
   function setZoom(newLevel) {
     if (newLevel < 1 || newLevel > 3 || newLevel === currentZoomLevel) return;
+    haptic(12);
     const currentConfig = ZOOM_LEVELS[currentZoomLevel];
     const anchorAge = getCenterAge(currentConfig.pxPerYear);
     currentZoomLevel = newLevel;
@@ -393,6 +411,7 @@
   }
 
   function closeDetailSheet() {
+    haptic(10);
     if (el.modalOverlay) {
       el.modalOverlay.classList.remove('open');
     }

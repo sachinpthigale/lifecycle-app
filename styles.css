@@ -1,4 +1,4 @@
-/* Production Mobile-First Stylesheet with Semantic Multi-Level Zoom & PIN Security Gate */
+/* Production Mobile-First Stylesheet with Semantic Multi-Level Zoom, PIN Security & Safe Areas */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -57,10 +57,12 @@ html, body {
   color: var(--text-main);
   display: flex;
   flex-direction: column;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }
 
 /* ==========================================================================
-   PIN Lock Screen (Freya App Security Pattern)
+   PIN Lock Screen (Phone App Pattern)
    ========================================================================== */
 .pin-lock-container {
   position: fixed;
@@ -71,7 +73,10 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 40px 24px 30px;
+  padding-top: max(40px, env(safe-area-inset-top));
+  padding-bottom: max(30px, env(safe-area-inset-bottom));
+  padding-left: max(24px, env(safe-area-inset-left));
+  padding-right: max(24px, env(safe-area-inset-right));
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
@@ -166,20 +171,22 @@ html, body {
 }
 
 /* ==========================================================================
-   Main Application Header Bar
+   Main Application Header Bar (Safe Area Aware)
    ========================================================================== */
 .mobile-header {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  padding: 0 20px;
+  height: calc(56px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 40;
-  background: linear-gradient(180deg, var(--bg) 60%, transparent 100%);
+  background: linear-gradient(180deg, var(--bg) 65%, transparent 100%);
 }
 
 .brand-label {
@@ -227,7 +234,7 @@ html, body {
 .lock-app-btn {
   background: transparent;
   border: none;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
@@ -414,10 +421,10 @@ html, body {
 .position-top .label-age { order: 1; margin-bottom: 2px; }
 .position-bottom .label-age { order: 2; margin-top: 2px; }
 
-/* Floating Bottom Zoom Action Bar */
+/* Floating Bottom Zoom Action Bar (Safe Area Aware) */
 .bottom-bar {
   position: absolute;
-  bottom: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -458,7 +465,7 @@ html, body {
   color: var(--bg);
 }
 
-/* Detail Modal Sheet */
+/* Detail Modal Sheet (Phone App Drawer) */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -485,7 +492,7 @@ html, body {
   width: 100%;
   max-width: 480px;
   border-radius: 32px 32px 0 0;
-  padding: 24px 22px 34px;
+  padding: 24px 22px max(34px, env(safe-area-inset-bottom));
   box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.2);
   transform: translateY(100%);
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);

@@ -1,0 +1,20 @@
+{
+  "appId": "com.lifeline.app",
+  "appName": "LifeLine",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#090a0f"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#090a0f",
+      "showSpinner": false
+    }
+  }
+}
