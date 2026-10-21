@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>LifeLine — Semantic Lifecycle Timeline</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar with Quick Zoom Level Pills -->
+  <header class="mobile-header">
+    <div class="header-left">
+      <span class="brand-label">LifeLine</span>
+    </div>
+
+    <!-- Quick Level of Detail (LOD) Selector -->
+    <div class="zoom-controls">
+      <button class="zoom-btn" data-level="1">Macro</button>
+      <button class="zoom-btn active" data-level="2">Decade</button>
+      <button class="zoom-btn" data-level="3">Detailed</button>
+    </div>
+
+    <button class="lock-btn" id="btn-lock-app" title="Lock LifeLine">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Main Timeline Viewport (Touch Drag & Pinch-to-Zoom) -->
+  <main class="timeline-viewport" id="timeline-viewport">
+    <div class="timeline-track" id="timeline-track">
+      <!-- The Continuous Axis Line -->
+      <div class="timeline-axis"></div>
+
+      <!-- Dynamic ticks, labels, and big dots injected by app.js -->
+    </div>
+  </main>
+
+  <!-- Floating Mobile Zoom & Guidance Bar -->
+  <footer class="bottom-bar">
+    <button class="zoom-btn-icon" id="zoom-out-btn" title="Zoom Out">−</button>
+    <span class="zoom-indicator-text" id="zoom-indicator-text">Decade View · 11 Milestones</span>
+    <button class="zoom-btn-icon" id="zoom-in-btn" title="Zoom In">+</button>
+  </footer>
+
+  <!-- Clean Detail Modal Sheet (Zero Bloat) -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-sheet" id="modal-sheet">
+      <div class="drag-handle"></div>
+      
+      <span class="sheet-badge" id="sheet-badge">Age 32 · Family Protection</span>
+      <h2 class="sheet-header-title" id="sheet-header-title">529 College Plan & Term Life</h2>
+
+      <div class="sheet-block">
+        <div class="sheet-label">What Happens at this Stage</div>
+        <p class="sheet-desc" id="sheet-what-happens">
+          Protecting your family's future and starting early college savings.
+        </p>
+      </div>
+
+      <div class="sheet-block">
+        <div class="sheet-label">What Peers Are Doing</div>
+        <div class="peer-insight-card" id="sheet-what-peers-do">
+          “84% open a 529 plan by age 1; 76% lock in 20-year level term life insurance.”
+        </div>
+      </div>
+
+      <div class="sheet-block">
+        <div class="sheet-label">Essential Next Steps</div>
+        <ul class="actions-list" id="sheet-actions-list">
+          <!-- Dynamically populated -->
+        </ul>
+      </div>
+
+      <button class="close-sheet-btn" id="close-sheet-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- PIN Lock Screen Overlay -->
+  <div class="pin-overlay" id="pin-overlay">
+    <div class="pin-container">
+      <div class="pin-lock-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h2 class="pin-title">LifeLine is Locked</h2>
+      <p class="pin-subtitle">Enter your 4-digit PIN to access</p>
+
+      <div class="pin-dots-row" id="pin-dots-row">
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+      <p class="pin-error-text" id="pin-error-text"></p>
+
+      <label class="pin-trust-label">
+        <input type="checkbox" id="chk-trust-device" checked>
+        <span>Remember this device</span>
+      </label>
+
+      <div class="pin-keypad">
+        <button class="keypad-btn" data-key="1">1</button>
+        <button class="keypad-btn" data-key="2">2</button>
+        <button class="keypad-btn" data-key="3">3</button>
+        <button class="keypad-btn" data-key="4">4</button>
+        <button class="keypad-btn" data-key="5">5</button>
+        <button class="keypad-btn" data-key="6">6</button>
+        <button class="keypad-btn" data-key="7">7</button>
+        <button class="keypad-btn" data-key="8">8</button>
+        <button class="keypad-btn" data-key="9">9</button>
+        <button class="keypad-btn keypad-fn" data-key="clear">CLR</button>
+        <button class="keypad-btn" data-key="0">0</button>
+        <button class="keypad-btn keypad-fn" data-key="back">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

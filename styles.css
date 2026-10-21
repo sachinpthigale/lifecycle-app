@@ -1,0 +1,680 @@
+/* Production Mobile-First Stylesheet with Semantic Multi-Level Zoom */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #ffffff;
+  --line-color: #cbd5e1;
+  --line-active: #0f172a;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --dot-bg: #ffffff;
+  --dot-border: #0f172a;
+  --dot-hover: #000000;
+  --sheet-bg: #ffffff;
+  --sheet-border: #e2e8f0;
+  --overlay: rgba(0, 0, 0, 0.45);
+  --accent: #2563eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #090a0f;
+    --line-color: #1e293b;
+    --line-active: #f8fafc;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #475569;
+    --dot-bg: #090a0f;
+    --dot-border: #f8fafc;
+    --dot-hover: #ffffff;
+    --sheet-bg: #12141c;
+    --sheet-border: #1e293b;
+    --overlay: rgba(0, 0, 0, 0.75);
+    --accent: #3b82f6;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile App Header Bar */
+.mobile-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
+  background: linear-gradient(180deg, var(--bg) 60%, transparent 100%);
+}
+
+.brand-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Floating Zoom Level Pill Controls */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sheet-bg);
+  padding: 3px 4px;
+  border-radius: 9999px;
+  border: 1px solid var(--sheet-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.zoom-btn {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zoom-btn:hover {
+  color: var(--text-main);
+}
+
+.zoom-btn.active {
+  background-color: var(--text-main);
+  color: var(--bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Timeline Viewport (Touch Scrolling & Pinching) */
+.timeline-viewport {
+  flex: 1;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+  position: relative;
+  display: flex;
+  align-items: center;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pinch-zoom;
+}
+
+.timeline-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-viewport:active {
+  cursor: grabbing;
+}
+
+/* Continuous Number Line Track */
+.timeline-track {
+  position: relative;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The Continuous Axis Line */
+.timeline-axis {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--line-color);
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+/* Year Ticks */
+.year-tick {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 8px;
+  background-color: var(--line-color);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+.year-tick.major {
+  height: 18px;
+  background-color: var(--text-dim);
+}
+
+.year-tick-label {
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%);
+  margin-top: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* The Big Interactive Dots */
+.timeline-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--dot-bg);
+  border: 2.5px solid var(--dot-border);
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, opacity 0.25s;
+}
+
+.timeline-dot::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--dot-border);
+}
+
+.timeline-dot.tier-1 {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+.timeline-dot.tier-1::after {
+  width: 9px;
+  height: 9px;
+}
+
+.timeline-dot:hover {
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.timeline-dot:active {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Staggered Non-Overlapping Labels */
+.dot-label-container {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: all 0.25s ease;
+}
+
+/* Stagger Above */
+.dot-label-container.position-top {
+  bottom: 50%;
+  margin-bottom: 24px;
+}
+
+/* Stagger Below */
+.dot-label-container.position-bottom {
+  top: 50%;
+  margin-top: 24px;
+}
+
+.label-stem {
+  width: 1px;
+  height: 12px;
+  background-color: var(--line-color);
+}
+.position-top .label-stem {
+  order: 2;
+  margin-top: 4px;
+}
+.position-bottom .label-stem {
+  order: 1;
+  margin-bottom: 4px;
+}
+
+.label-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+.position-top .label-title { order: 1; }
+.position-bottom .label-title { order: 2; }
+
+.label-age {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.position-top .label-age { order: 1; margin-bottom: 2px; }
+.position-bottom .label-age { order: 2; margin-top: 2px; }
+
+/* Floating Bottom Zoom Action Bar */
+.bottom-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--sheet-bg);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--sheet-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  z-index: 40;
+}
+
+.zoom-indicator-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.zoom-btn-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--sheet-border);
+  background: var(--bg);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zoom-btn-icon:hover {
+  background-color: var(--text-main);
+  color: var(--bg);
+}
+
+/* Detail Modal Sheet (Zero Bloat, Crisp & Pure) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--overlay);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-sheet {
+  background-color: var(--sheet-bg);
+  border: 1px solid var(--sheet-border);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 32px 32px 0 0;
+  padding: 24px 22px 34px;
+  box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.2);
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+@media (min-width: 540px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-sheet {
+    border-radius: 30px;
+    transform: scale(0.92);
+  }
+  .modal-overlay.open .modal-sheet {
+    transform: scale(1);
+  }
+}
+
+.modal-overlay.open .modal-sheet {
+  transform: translateY(0);
+}
+
+.drag-handle {
+  width: 36px;
+  height: 4px;
+  background-color: var(--line-color);
+  border-radius: 999px;
+  margin: 0 auto 16px;
+}
+
+.sheet-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.sheet-header-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+.sheet-block {
+  margin-bottom: 16px;
+}
+
+.sheet-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.sheet-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-main);
+}
+
+.peer-insight-card {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text-main);
+  padding: 12px 14px;
+  border-radius: 14px;
+  background-color: rgba(148, 163, 184, 0.12);
+  border-left: 3px solid var(--accent);
+}
+
+.actions-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-main);
+}
+
+.action-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+
+.close-sheet-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  background-color: var(--text-main);
+  color: var(--bg);
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.close-sheet-btn:hover {
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   PIN LOCK SCREEN OVERLAY & KEYPAD
+   ========================================================================== */
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lock-btn {
+  background: var(--sheet-bg);
+  border: 1px solid var(--sheet-border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.lock-btn:hover {
+  color: var(--text-main);
+  border-color: var(--text-muted);
+  transform: scale(1.05);
+}
+
+.lock-btn:active {
+  transform: scale(0.95);
+}
+
+.pin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+}
+
+.pin-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.pin-container {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pin-lock-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.pin-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.pin-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.pin-dots-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  margin-bottom: 8px;
+}
+
+.pin-dots-row.shake {
+  animation: pinShake 0.38s ease-in-out;
+}
+
+@keyframes pinShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--text-dim);
+  background: transparent;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pin-dot.filled {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.45);
+}
+
+.pin-dot.error {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
+}
+
+.pin-error-text {
+  min-height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+  margin-bottom: 12px;
+}
+
+.pin-trust-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-bottom: 24px;
+}
+
+.pin-trust-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.keypad-btn {
+  height: 58px;
+  border-radius: 50%;
+  background: var(--sheet-bg);
+  border: 1px solid var(--sheet-border);
+  color: var(--text-main);
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.keypad-btn:active {
+  transform: scale(0.92);
+  background: rgba(37, 99, 235, 0.12);
+  border-color: var(--accent);
+}
+
+.keypad-btn.keypad-fn {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
